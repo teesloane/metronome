@@ -1,3 +1,4 @@
+import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -47,25 +48,30 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   Timer _timer;
+  static AudioCache player = AudioCache();
+
   bool _isRunning = false;
   int _beat = 1;
   int _bar = 4;
   // int _tempo = 500; // ms
 
   void _metroInc(Timer timer) {
+    player.play("beep.mp3");
     setState(() {
       _beat++;
     });
   }
 
   _toggleTimer() {
-    if (this._isRunning) { // stop the timer
+    if (this._isRunning) {
+      // stop the timer
       _timer.cancel();
       setState(() {
         _isRunning = false;
       });
-    } else { // start the timer
-      const dur = const Duration(milliseconds: 500); // TODO: make dynamic.
+    } else {
+      // start the timer
+      const dur = const Duration(milliseconds: 1500); // TODO: make dynamic.
       _timer = Timer.periodic(dur, _metroInc);
       setState(() {
         _isRunning = true;
