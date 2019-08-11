@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:flutter/semantics.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -53,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isRunning = false;
   int _beat = 1;
   int _bar = 4;
-  // int _tempo = 500; // ms
+  int _tempo = 500; // ms
 
   void _metroInc(Timer timer) {
     player.play("beep.mp3");
@@ -104,22 +106,59 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  String getTempo() {
+    var tempo = 60000 / _tempo;
+    // return 60000 / _tempo;
+    return tempo.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-            Text(
-              '$_beat / $_bar',
-              style: Theme.of(context).textTheme.display1,
-            ),
-            _buildToggleButton()
-          ])),
-    );
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: Center(
+          child: Stack(children: <Widget>[
+            Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    '$_beat / $_bar',
+                    style: Theme.of(context).textTheme.display1,
+                  ),
+                  _buildToggleButton(),
+                  Text(
+                    getTempo(),
+                    style: Theme.of(context).textTheme.display1,
+                  ),
+                  // InteractableWidget,
+                ]),
+            TempoScroller()
+          ]),
+        ));
+  }
+}
+
+class TempoScroller extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      bottom: 0,
+      right: 0,
+      left: 0,
+        // left: 30.0,
+        // right: 0,
+        child: Container(
+            width: 100.0,
+            // height: 300.0,
+            child: GestureDetector(
+              child: Container(color: Colors.lightGreen.withOpacity(0.3)),
+              // onVerticalDragStart: (e) => print("starting to drag"),
+              // onVerticalDragEnd: (e) => print("stopped draggin"),
+              onVerticalDragDown: (e) => print(e),
+              onVerticalDragUpdate: (e) => print(e),
+            )));
   }
 }

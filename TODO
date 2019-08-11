@@ -5,8 +5,8 @@ Investigations (scheduling and interface):
   ✔ Play sound in scheduler. @logic @done(19-08-10 16:28)
 
 MVP:
-  ☐ Display tempo
-  ☐ Allow changing tempo
+  ✔ Display tempo @done(19-08-11 16:21)
+  ☐ Allow changing tempo (by sliding up/down right side)
   ☐ allow changing time signature (ie, change `_bar`)
   ☐ Enable changing selected sounds.
 
