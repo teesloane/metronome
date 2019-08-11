@@ -1,0 +1,19 @@
+Investigations (scheduling and interface):
+  ✔ Logic: Learn how timers/interval scheduling work @logic @done(19-08-10 16:28)
+  ✔ Change a number on a timer system @ui @done(19-08-10 16:28)
+  ✔ Find audio player library @deps @done(19-08-10 16:28)
+  ✔ Play sound in scheduler. @logic @done(19-08-10 16:28)
+
+MVP:
+  ☐ Display tempo
+  ☐ Allow changing tempo
+  ☐ allow changing time signature (ie, change `_bar`)
+  ☐ Enable changing selected sounds.
+
+VP / Ideas:
+  ☐ Display recent tempos
+  ☐ Store last chosen tempo on re-opening application
+  ☐ Show animations for each style (3/4, 4/4) - probably just shapes + color + animations 
+  ☐ Test working on android
+  ☐ Users can set custom sounds.
+  ☐ 
