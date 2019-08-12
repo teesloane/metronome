@@ -54,6 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _beat = 1;
   int _bar = 4;
   int _tempo = 500; // ms
+  double _tester = 10.0;
 
   void _metroInc(Timer timer) {
     player.play("beep.mp3");
@@ -67,6 +68,13 @@ class _MyHomePageState extends State<MyHomePage> {
         _beat++;
       });
     }
+  }
+
+  _changeTester(DragUpdateDetails details) {
+    print(details.delta.dy);
+    setState(() {
+      _tester -= details.delta.dy;
+    });
   }
 
   _toggleTimer() {
@@ -132,16 +140,20 @@ class _MyHomePageState extends State<MyHomePage> {
                       getTempo(),
                       style: Theme.of(context).textTheme.display1,
                     ),
+                    Text("$_tester")
                     // InteractableWidget,
                   ]),
             ),
-            TempoScroller()
+            TempoScroller(notifyParent: _changeTester)
           ]),
         ));
   }
 }
 
 class TempoScroller extends StatelessWidget {
+  final Function(DragUpdateDetails details) notifyParent;
+  TempoScroller({Key key, @required this.notifyParent}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -151,9 +163,10 @@ class TempoScroller extends StatelessWidget {
         child: Container(
             width: 45.0,
             child: GestureDetector(
-              child: Container(color: Colors.lightGreen.withOpacity(0.3)),
-              onVerticalDragDown: (e) => print(e),
-              onVerticalDragUpdate: (e) => print(e),
-            )));
+                child: Container(color: Colors.lightGreen.withOpacity(0.3)),
+                onVerticalDragDown: (e) => print(e),
+                onVerticalDragUpdate: (e) {
+                  notifyParent(e); // (e) => print(e), //this.changeTester(e),
+                })));
   }
 }
