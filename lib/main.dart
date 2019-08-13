@@ -74,23 +74,23 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  _onVerticalGesture(DragUpdateDetails details) {
-    setState(() {
-      _tempo += Duration(milliseconds: details.delta.dy.round());
-    });
-  }
+  // _onVerticalGesture(DragUpdateDetails details) {
+  //   setState(() {
+  //     _tempo += Duration(milliseconds: details.delta.dy.round());
+  //   });
+  // }
 
-  _onReleaseTempoSlider() {
-    // If running, stop it, adjust tempo with new timer and resume
-    if (_isRunning) {
-      _timer.cancel();
-      setState(() {
-        _timer = Timer.periodic(_tempo, _metroInc);
-      });
-    } else {
-      print("do nothing"); // Remove at some point.
-    }
-  }
+  // _onReleaseTempoSlider() {
+  //   // If running, stop it, adjust tempo with new timer and resume
+  //   if (_isRunning) {
+  //     _timer.cancel();
+  //     setState(() {
+  //       _timer = Timer.periodic(_tempo, _metroInc);
+  //     });
+  //   } else {
+  //     print("do nothing"); // Remove at some point.
+  //   }
+  // }
 
   _toggleTimer() {
     if (_isRunning) {
@@ -133,9 +133,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
+        // appBar: AppBar(
+        //   title: Text(widget.title),
+        // ),
         body: Center(
           child: Stack(children: <Widget>[
             Container(), // Makes the stack full screen size.
@@ -156,10 +156,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     // InteractableWidget,
                   ]),
             ),
-            TempoScroller(
-              notifyParent: _onVerticalGesture,
-              handleOVDE: _onReleaseTempoSlider,
-            )
+            // TempoScroller(
+            //   notifyParent: _onVerticalGesture,
+            //   handleOVDE: _onReleaseTempoSlider,
+            // )
           ]),
         ));
   }
