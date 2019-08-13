@@ -47,17 +47,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  // State --
+
   Timer _timer;
   static AudioCache player = AudioCache();
-
   int _beat = 1;
   int _bar = 4;
   Duration _tempo = Duration(milliseconds: 500);
-
   bool _isRunning = false;
-  initState() {
-    super.initState();
-  }
+
+  // Methods --
 
   void _metroInc(Timer timer) {
     player.play("beep.mp3");
