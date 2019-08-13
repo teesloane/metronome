@@ -17,12 +17,11 @@ class TempoSlider extends StatefulWidget {
 
 class _TempoSliderState extends State<TempoSlider>
     with SingleTickerProviderStateMixin {
-  double _dragPos = 0;
-  double _dragPercentage = 0;
+  double _dragPos = 0.0;
+  double _dragPercentage = 0.0;
   WaveSliderController _slideController;
 
   @override
-  // when sliderState gets initialized,
   void initState() {
     super.initState();
     _slideController = WaveSliderController(vsync: this)
@@ -31,18 +30,18 @@ class _TempoSliderState extends State<TempoSlider>
 
   @override
   void dispose() {
-    _slideController.dispose();
     super.dispose();
+    _slideController.dispose();
   }
 
 // Called every time one of the drag functions are called
   void _updateDragPosition(Offset val) {
-    double newDragPosition = 0;
+    double newDragPosition = 0.0;
 
     // Stop the dragging from exceeding the bounds of the slider.
-    // this will be irrelevant if the slider is going to take the whole bounds of the right screen.
-    if (val.dx <= 0) {
-      newDragPosition = 0;
+    // NOTE: this will be irrelevant if the slider is going to take the whole bounds of the right screen.
+    if (val.dx <= 0.0) {
+      newDragPosition = 0.0;
     } else if (val.dx >= widget.width) {
       newDragPosition = widget.width;
     } else {
@@ -61,7 +60,6 @@ class _TempoSliderState extends State<TempoSlider>
     Offset offset = box.globalToLocal(update.globalPosition);
     _slideController.setStateToSliding();
     _updateDragPosition(offset);
-    print(offset);
   }
 
   void _onDragStart(BuildContext ctx, DragStartDetails start) {
@@ -80,10 +78,13 @@ class _TempoSliderState extends State<TempoSlider>
   Widget build(BuildContext context) {
     return Container(
       child: GestureDetector(
+        onHorizontalDragUpdate: (d) => _onDragUpdate(context, d),
+        onHorizontalDragStart: (s) => _onDragStart(context, s),
+        onHorizontalDragEnd: (end) => _onDragEnd(context, end),
         child: Container(
           width: widget.width,
           height: widget.height,
-          // color: Colors.red,
+          // color: Colors.red.withOpacity(0.1),
           child: CustomPaint(
               painter: WavePainter(
                   color: widget.color,
@@ -92,14 +93,79 @@ class _TempoSliderState extends State<TempoSlider>
                   sliderState: _slideController.state,
                   animationProgress: _slideController.progress)),
         ),
-        onHorizontalDragUpdate: (d) => _onDragUpdate(context, d),
-        onHorizontalDragStart: (s) => _onDragStart(context, s),
-        onHorizontalDragEnd: (end) => _onDragEnd(context, end),
       ),
     );
   }
 }
 
+/// controls the state of our slider's animation and dragger.
+class WaveSliderController extends ChangeNotifier {
+  final AnimationController ctrl;
+  SliderState _state = SliderState.resting;
+
+  WaveSliderController({@required TickerProvider vsync})
+      : ctrl = AnimationController(vsync: vsync) {
+    ctrl
+      ..addListener(_onProgressUpdate)
+      ..addStatusListener(_onStatusUpdate);
+  }
+
+  double get progress => ctrl.value;
+  SliderState get state => _state;
+
+  void _onProgressUpdate() {
+    notifyListeners();
+  }
+
+  void _onStatusUpdate(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      _onTransitionCompleted();
+    }
+  }
+
+  void _onTransitionCompleted() {
+    if (_state == SliderState.stopping) {
+      setStateToResting();
+    }
+  }
+
+  void _startAnimation() {
+    ctrl.duration = Duration(milliseconds: 500);
+    ctrl.forward(from: 0.0);
+    notifyListeners();
+  }
+
+  void setStateToResting() {
+    _state = SliderState.resting;
+  }
+
+  void setStateToStart() {
+    _startAnimation();
+    _state = SliderState.starting;
+  }
+
+  void setStateToSliding() {
+    _state = SliderState.sliding;
+  }
+
+  void setStateToStopping() {
+    _startAnimation();
+    _state = SliderState.stopping;
+  }
+}
+
+enum SliderState {
+  starting,
+  resting,
+  sliding,
+  stopping,
+}
+
+//
+// —— CUSTOM PAINTER ————————————————————————————————————————————
+//
+
+/// Responsible for drawing the slider in all it's potential states.
 class WavePainter extends CustomPainter {
   final double sliderPosition;
   final double dragPercentage;
@@ -109,8 +175,8 @@ class WavePainter extends CustomPainter {
   final double animationProgress;
   final SliderState sliderState;
 
-  double _previousSliderPosition =
-      0; // for determining if the current position is diff from previous pos.
+  // for determining if the current position is diff from previous pos.
+  double _previousSliderPosition = 0;
 
   WavePainter(
       {@required this.animationProgress,
@@ -131,12 +197,11 @@ class WavePainter extends CustomPainter {
   /// Main paint loop: paints the anchor of the tempoSlider, and the wave line.
   void paint(Canvas canvas, Size size) {
     _paintAnchors(canvas, size);
-    // _paintWaveLine(canvas, size, );
 
-    // print('$sliderState');
     switch (sliderState) {
       case (SliderState.starting):
         _paintStartupWave(canvas, size);
+        // _paintSlidingWave(canvas, size);
         break;
       case (SliderState.stopping):
         _paintStoppingWave(canvas, size);
@@ -195,21 +260,12 @@ class WavePainter extends CustomPainter {
     canvas.drawCircle(Offset(size.width, size.height), 5.0, fillPainter);
   }
 
-  /// Calculates the definitions of the wave line
-  /// Everytime we paint, based on the input of a gesture,
+  /// - Calculates the definitions of the wave line
+  /// - Everytime we paint, based on the input of a gesture,
   /// calculates the bend start and ends, as well as the control points of the bezier.
-  /// Returns a set of WaveCurveDefinitions that can be used in _paintWaveLine
+  /// - Returns a set of WaveCurveDefinitions that can be used in _paintWaveLine
   WaveCurveDefinitions _calculateWaveLineDefinitions(Size size) {
-    // Optional: changes as we drag.
-    // double minWaveHeight = size.height * 0.2;
-    // double maxWaveHeight = size.height * 0.8;
-    // double controlHeight =
-    //     (size.height - minWaveHeight) - (maxWaveHeight * dragPercentage);
-
-    double controlHeight =
-        0.0; // change back to this to get uniform height across 0 -> 100
-    // double bendWidth = 20.0 + 20 * dragPercentage;
-    // double bezierWidth = 20 + 20 * dragPercentage;
+    double controlHeight = 0.0;
     double bendWidth = 20;
     double bezierWidth = 20;
 
@@ -239,12 +295,11 @@ class WavePainter extends CustomPainter {
       slideDifference = maxSlideDifference;
     }
 
-    // interpolates how much we want the bend.
-    // basically, how fast you move the thing, how much it bends.
+    // interpolates how much we want the bend: faster the move -> faster it bends
     double bend =
         lerpDouble(0.0, bendability, slideDifference / maxSlideDifference);
 
-    // is slider Moving left?
+    // Adjust bending based on direction
     bool moveLeft = sliderPosition < _previousSliderPosition;
     bend = moveLeft ? -bend : bend;
     leftControlPoint1 = leftControlPoint1 + bend;
@@ -313,67 +368,4 @@ class WaveCurveDefinitions {
       this.leftControlPoint2,
       this.rightControlPoint1,
       this.rightControlPoint2);
-}
-
-/// controls the state of our slider's animation and dragger.
-class WaveSliderController extends ChangeNotifier {
-  final AnimationController ctrl;
-  SliderState _state = SliderState.resting;
-
-  WaveSliderController({@required TickerProvider vsync})
-      : ctrl = AnimationController(vsync: vsync) {
-    ctrl
-      ..addListener(_onProgressUpdate)
-      ..addStatusListener(_onStatusUpdate);
-  }
-
-  double get progress => ctrl.value;
-  SliderState get state => _state;
-
-  void _onProgressUpdate() {
-    notifyListeners();
-  }
-
-  void _onStatusUpdate(AnimationStatus status) {
-    if (status == AnimationStatus.completed) {
-      _onTransitionCompleted();
-    }
-  }
-
-  void _onTransitionCompleted() {
-    if (_state == SliderState.stopping) {
-      setStateToResting();
-    }
-  }
-
-  void _startAnimation() {
-    ctrl.duration = Duration(milliseconds: 500);
-    ctrl.forward(from: 0.0);
-    notifyListeners();
-  }
-
-  void setStateToResting() {
-    _state = SliderState.resting;
-  }
-
-  void setStateToStart() {
-    _startAnimation();
-    _state = SliderState.starting;
-  }
-
-  void setStateToSliding() {
-    _state = SliderState.sliding;
-  }
-
-  void setStateToStopping() {
-    _startAnimation();
-    _state = SliderState.stopping;
-  }
-}
-
-enum SliderState {
-  starting,
-  resting,
-  sliding,
-  stopping,
 }
