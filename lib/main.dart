@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:metronome/tempoSlider.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -150,6 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       getTempo(),
                       style: Theme.of(context).textTheme.display1,
                     ),
+                    TempoSlider()
                     // InteractableWidget,
                   ]),
             ),
