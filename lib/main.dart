@@ -50,15 +50,17 @@ class _MyHomePageState extends State<MyHomePage> {
   Timer _timer;
   static AudioCache player = AudioCache();
 
-  bool _isRunning = false;
   int _beat = 1;
   int _bar = 4;
-  int _tempo = 500; // ms
-  double _tester = 10.0;
+  Duration _tempo = Duration(milliseconds: 500);
+
+  bool _isRunning = false;
+  initState() {
+    super.initState();
+  }
 
   void _metroInc(Timer timer) {
     player.play("beep.mp3");
-
     if (_beat == _bar) {
       setState(() {
         _beat = 1;
@@ -71,40 +73,42 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _changeTester(DragUpdateDetails details) {
-    print(details.delta.dy);
     setState(() {
-      _tester -= details.delta.dy;
+      _tempo += Duration(milliseconds: details.delta.dy.round());
     });
   }
 
+  _onReleaseTempoSlider() {
+    _toggleTimer();
+    _timer = Timer.periodic(_tempo, _metroInc);
+    _toggleTimer();
+  }
+
   _toggleTimer() {
-    if (this._isRunning) {
-      // stop the timer
-      _timer.cancel();
+    if (_isRunning) {
       setState(() {
+        _timer.cancel();
         _isRunning = false;
       });
     } else {
-      // start the timer
-      const dur = const Duration(milliseconds: 500); // TODO: make dynamic.
-      _timer = Timer.periodic(dur, _metroInc);
       setState(() {
+        _timer = Timer.periodic(_tempo, _metroInc);
         _isRunning = true;
       });
     }
   }
 
   _buildToggleButton() {
-    if (this._isRunning) {
+    if (!_isRunning) {
       return MaterialButton(
-          child: Text("Stop"),
+          child: Text("Start"),
           onPressed: () {
             _toggleTimer();
           },
           color: Colors.orangeAccent);
     } else {
       return MaterialButton(
-          child: Text("Start"),
+          child: Text("Stop"),
           onPressed: () {
             _toggleTimer();
           },
@@ -113,9 +117,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   String getTempo() {
-    var tempo = 60000 / _tempo;
-    // return 60000 / _tempo;
-    return tempo.toString();
+    var sliceOfString = _tempo.toString().substring(8, 11);
+    var intTempo = (60000 / int.parse(sliceOfString)).round();
+    return intTempo.toString();
   }
 
   @override
@@ -140,7 +144,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       getTempo(),
                       style: Theme.of(context).textTheme.display1,
                     ),
-                    Text("$_tester")
                     // InteractableWidget,
                   ]),
             ),
@@ -164,9 +167,10 @@ class TempoScroller extends StatelessWidget {
             width: 45.0,
             child: GestureDetector(
                 child: Container(color: Colors.lightGreen.withOpacity(0.3)),
+                // onVerticalDragEnd: (e) =>
                 onVerticalDragDown: (e) => print(e),
                 onVerticalDragUpdate: (e) {
-                  notifyParent(e); // (e) => print(e), //this.changeTester(e),
+                  notifyParent(e);
                 })));
   }
 }
