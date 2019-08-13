@@ -72,16 +72,22 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  _changeTester(DragUpdateDetails details) {
+  _onVerticalGesture(DragUpdateDetails details) {
     setState(() {
       _tempo += Duration(milliseconds: details.delta.dy.round());
     });
   }
 
   _onReleaseTempoSlider() {
-    _toggleTimer();
-    _timer = Timer.periodic(_tempo, _metroInc);
-    _toggleTimer();
+    // If running, stop it, adjust tempo with new timer and resume
+    if (_isRunning) {
+      _timer.cancel();
+      setState(() {
+        _timer = Timer.periodic(_tempo, _metroInc);
+      });
+    } else {
+      print("do nothing"); // Remove at some point.
+    }
   }
 
   _toggleTimer() {
@@ -147,7 +153,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     // InteractableWidget,
                   ]),
             ),
-            TempoScroller(notifyParent: _changeTester)
+            TempoScroller(
+              notifyParent: _onVerticalGesture,
+              handleOVDE: _onReleaseTempoSlider,
+            )
           ]),
         ));
   }
@@ -155,7 +164,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
 class TempoScroller extends StatelessWidget {
   final Function(DragUpdateDetails details) notifyParent;
-  TempoScroller({Key key, @required this.notifyParent}) : super(key: key);
+  final Function() handleOVDE;
+  TempoScroller(
+      {Key key, @required this.notifyParent, @required this.handleOVDE})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +179,7 @@ class TempoScroller extends StatelessWidget {
             width: 45.0,
             child: GestureDetector(
                 child: Container(color: Colors.lightGreen.withOpacity(0.3)),
-                // onVerticalDragEnd: (e) =>
+                onVerticalDragEnd: (e) => handleOVDE(),
                 onVerticalDragDown: (e) => print(e),
                 onVerticalDragUpdate: (e) {
                   notifyParent(e);
