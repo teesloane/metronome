@@ -12,11 +12,11 @@ class TempoSlider extends StatefulWidget {
   final ValueChanged<double> onChangedStart;
 
   const TempoSlider(
-      {this.width = 350,
+      {this.width,
       this.height = 50,
       this.color = Colors.black,
       @required this.onChanged,
-      this.onChangedStart});
+      @required this.onChangedStart});
 
   @override
   _TempoSliderState createState() => _TempoSliderState();

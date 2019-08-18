@@ -49,15 +49,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // State --
-
-  Timer _timer;
+  //
+  // -- State
+  //
   static AudioCache player = AudioCache();
+  Timer _timer;
   int _beat = 1;
   int _bar = 4;
   Duration _tempo = Duration(milliseconds: 500);
   bool _isRunning = false;
   double _tempo2 = 0;
+  double _sliderOffset = 20;
 
   // Methods --
 
@@ -153,18 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   style: Theme.of(context).textTheme.display1,
                 ),
                 Text(_tempo2.toString()),
-                TempoSlider(
-                  onChanged: (double val) {
-                    setState(() {
-                      _tempo2 = (val * 100).roundToDouble();
-                    });
-                  },
-                  onChangedStart: (double val) {
-                    setState(() {
-                      _tempo2 = (val * 100).roundToDouble();
-                    });
-                  },
-                )
+
                 // InteractableWidget,
               ]),
         ),
@@ -172,6 +163,29 @@ class _MyHomePageState extends State<MyHomePage> {
         //   notifyParent: _onVerticalGesture,
         //   handleOVDE: _onReleaseTempoSlider,
         // )
+
+        Positioned(
+          right: 0,
+          bottom: _sliderOffset,
+          // top: 50,
+          child: RotatedBox(
+            quarterTurns: 3,
+            child: TempoSlider(
+              width: MediaQuery.of(context).size.height - (_sliderOffset * 2),
+              color: Colors.red,
+              onChanged: (double val) {
+                setState(() {
+                  _tempo2 = (val * 100).roundToDouble();
+                });
+              },
+              onChangedStart: (double val) {
+                setState(() {
+                  _tempo2 = (val * 100).roundToDouble();
+                });
+              },
+            ),
+          ),
+        )
       ]),
     ));
   }
