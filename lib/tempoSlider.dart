@@ -8,13 +8,21 @@ class TempoSlider extends StatefulWidget {
   final double height;
   final Color color;
 
+  final ValueChanged<double> onChanged;
+  final ValueChanged<double> onChangedStart;
+
   const TempoSlider(
-      {this.width = 350, this.height = 50, this.color = Colors.black});
+      {this.width = 350,
+      this.height = 50,
+      this.color = Colors.black,
+      @required this.onChanged,
+      this.onChangedStart});
 
   @override
   _TempoSliderState createState() => _TempoSliderState();
 }
 
+// Uses animation mixin.
 class _TempoSliderState extends State<TempoSlider>
     with SingleTickerProviderStateMixin {
   double _dragPos = 0.0;
@@ -53,6 +61,18 @@ class _TempoSliderState extends State<TempoSlider>
     });
   }
 
+  // These two could be refactored into one + some message passing.
+  _handleChangeUpdate(double val) {
+    assert(widget.onChanged != null); // make sure user passes in a callback
+    widget.onChanged(val);
+  }
+
+  // Refactor ☝️
+  _handleChangeStart(double val) {
+    assert(widget.onChanged != null); // make sure user passes in a callback
+    widget.onChangedStart(val);
+  }
+
   void _onDragUpdate(BuildContext context, DragUpdateDetails update) {
     // Find the x and y coordinates of the drawn GestureDetector.
     RenderBox box = context.findRenderObject();
@@ -60,6 +80,7 @@ class _TempoSliderState extends State<TempoSlider>
     Offset offset = box.globalToLocal(update.globalPosition);
     _slideController.setStateToSliding();
     _updateDragPosition(offset);
+    _handleChangeUpdate(_dragPercentage);
   }
 
   void _onDragStart(BuildContext ctx, DragStartDetails start) {
@@ -67,6 +88,7 @@ class _TempoSliderState extends State<TempoSlider>
     Offset offset = box.globalToLocal(start.globalPosition);
     _slideController.setStateToStart();
     _updateDragPosition(offset);
+    _handleChangeStart(_dragPercentage);
   }
 
   void _onDragEnd(BuildContext ctx, DragEndDetails end) {
@@ -162,7 +184,7 @@ enum SliderState {
 }
 
 //
-// —— CUSTOM PAINTER ————————————————————————————————————————————
+// —— CUSTOM PAINTER (canvas stuff) ———————————————————————————————————————————
 //
 
 /// Responsible for drawing the slider in all it's potential states.
@@ -217,6 +239,12 @@ class WavePainter extends CustomPainter {
     }
   }
 
+  // Sub Paint loops; each draw a part of the animation and are
+  // Then collected and painted by `paint`.
+
+  // ------ SUB PAINT LOOPS ---------------------------------------------------
+  // -- different parts of the animation
+
   void _paintStartupWave(Canvas canvas, Size size) {
     WaveCurveDefinitions line = _calculateWaveLineDefinitions(size);
 
@@ -255,7 +283,7 @@ class WavePainter extends CustomPainter {
     canvas.drawPath(path, wavePainter);
   }
 
-  _paintAnchors(Canvas canvas, Size size) {
+  void _paintAnchors(Canvas canvas, Size size) {
     canvas.drawCircle(Offset(0.0, size.height), 5.0, fillPainter);
     canvas.drawCircle(Offset(size.width, size.height), 5.0, fillPainter);
   }
@@ -343,7 +371,7 @@ class WavePainter extends CustomPainter {
   }
 }
 
-// Cleans up our variables in a class
+// Repeatedly used parts of the bezier; DRY.
 class WaveCurveDefinitions {
   final double startOfBend;
   final double startOfBezier;

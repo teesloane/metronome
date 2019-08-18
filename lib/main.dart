@@ -49,7 +49,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   // State --
 
   Timer _timer;
@@ -58,6 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _bar = 4;
   Duration _tempo = Duration(milliseconds: 500);
   bool _isRunning = false;
+  double _tempo2 = 0;
 
   // Methods --
 
@@ -137,31 +137,43 @@ class _MyHomePageState extends State<MyHomePage> {
         //   title: Text(widget.title),
         // ),
         body: Center(
-          child: Stack(children: <Widget>[
-            Container(), // Makes the stack full screen size.
-            Center(
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      '$_beat / $_bar',
-                      style: Theme.of(context).textTheme.display1,
-                    ),
-                    _buildToggleButton(),
-                    Text(
-                      getTempo(),
-                      style: Theme.of(context).textTheme.display1,
-                    ),
-                    TempoSlider()
-                    // InteractableWidget,
-                  ]),
-            ),
-            // TempoScroller(
-            //   notifyParent: _onVerticalGesture,
-            //   handleOVDE: _onReleaseTempoSlider,
-            // )
-          ]),
-        ));
+      child: Stack(children: <Widget>[
+        Container(), // Makes the stack full screen size.
+        Center(
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  '$_beat / $_bar',
+                  style: Theme.of(context).textTheme.display1,
+                ),
+                _buildToggleButton(),
+                Text(
+                  getTempo(),
+                  style: Theme.of(context).textTheme.display1,
+                ),
+                Text(_tempo2.toString()),
+                TempoSlider(
+                  onChanged: (double val) {
+                    setState(() {
+                      _tempo2 = (val * 100).roundToDouble();
+                    });
+                  },
+                  onChangedStart: (double val) {
+                    setState(() {
+                      _tempo2 = (val * 100).roundToDouble();
+                    });
+                  },
+                )
+                // InteractableWidget,
+              ]),
+        ),
+        // TempoScroller(
+        //   notifyParent: _onVerticalGesture,
+        //   handleOVDE: _onReleaseTempoSlider,
+        // )
+      ]),
+    ));
   }
 }
 
