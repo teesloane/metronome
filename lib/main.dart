@@ -1,10 +1,10 @@
 import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
-
+import 'package:flutter/services.dart';
 import 'package:metronome/tempoSlider.dart';
 import 'package:metronome/util.dart';
+import 'dart:async';
 
 void main() => runApp(MyApp());
 
@@ -125,7 +125,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.white.withOpacity(0.1),
-        body: Center(
+        body: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.light,
           child: Stack(
             children: <Widget>[
               Column(children: <Widget>[
@@ -155,8 +156,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: MediaQuery.of(context).size.height -
                         (_sliderOffset * 2),
                     color: Colors.white,
-                    onChanged: (val) => _setTempo(val),
-                    onChangedStart: (val) => _setTempo(val),
+                    onChanged: (val) => null,
+                    onChangedStart: (val) => null,
                   ),
                 ),
               ),
@@ -169,7 +170,11 @@ class _MyHomePageState extends State<MyHomePage> {
     return Container(
         height: 100,
         width: double.infinity,
-        color: Colors.orange.withOpacity(0.04),
+        decoration: BoxDecoration(
+            color: Colors.orange.withOpacity(0.04),
+            border: Border(
+                top:
+                    BorderSide(width: 2.0, color: Colors.deepOrange.shade800))),
         child: Row(children: <Widget>[
           Expanded(
             child: Container(
