@@ -1,6 +1,9 @@
 import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:metronome/tempoSlider.dart';
+import 'package:metronome/util.dart';
 import 'dart:async';
 
 void main() => runApp(MyApp());
@@ -12,17 +15,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.lightGreen,
-      ),
+          primarySwatch: Colors.lightGreen,
+          textTheme: Theme.of(context).textTheme.apply(
+                // fontFamily: 'Open Sans', // TODO: set a font.
+                bodyColor: Colors.white,
+                displayColor: Colors.white,
+              )),
       home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -30,16 +28,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -47,15 +35,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
-  // State --
-
-  Timer _timer;
+  //
+  // -- State
+  //
   static AudioCache player = AudioCache();
+  Timer _timer;
   int _beat = 1;
   int _bar = 4;
-  Duration _tempo = Duration(milliseconds: 500);
+  int _tempoInt = 120;
+  double maxTempo = 300;
+  double minTempo = 30;
+  Duration _tempoDuration = Duration(milliseconds: 500);
   bool _isRunning = false;
+  double _sliderOffset = 100;
 
   // Methods --
 
@@ -72,25 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  _onVerticalGesture(DragUpdateDetails details) {
-    setState(() {
-      _tempo += Duration(milliseconds: details.delta.dy.round());
-    });
-  }
-
-  _onReleaseTempoSlider() {
-    // If running, stop it, adjust tempo with new timer and resume
-    if (_isRunning) {
-      _timer.cancel();
-      setState(() {
-        _timer = Timer.periodic(_tempo, _metroInc);
-      });
-    } else {
-      print("do nothing"); // Remove at some point.
-    }
-  }
-
-  _toggleTimer() {
+  void _toggleTimer() {
     if (_isRunning) {
       setState(() {
         _timer.cancel();
@@ -98,32 +72,51 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     } else {
       setState(() {
-        _timer = Timer.periodic(_tempo, _metroInc);
+        _timer = Timer.periodic(_tempoDuration, _metroInc);
         _isRunning = true;
+      });
+    }
+  }
+
+  _setTempo(double sliderVal) {
+    var _newTempo = (sliderVal * 100).toInt();
+    var _scaledTempo =
+        scaleNum(_newTempo, 0, 100, bpmToMS(minTempo), bpmToMS(maxTempo));
+
+    // if running, cancel timer and restart it.
+    if (_isRunning) {
+      _timer.cancel();
+      setState(() {
+        _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
+        _tempoInt = msToBpm(_scaledTempo).toInt();
+        _timer = Timer.periodic(_tempoDuration, _metroInc);
+      });
+    } else {
+      setState(() {
+        _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
+        _tempoInt = msToBpm(_scaledTempo).toInt();
       });
     }
   }
 
   _buildToggleButton() {
     if (!_isRunning) {
-      return MaterialButton(
-          child: Text("Start"),
-          onPressed: () {
-            _toggleTimer();
-          },
-          color: Colors.orangeAccent);
+      return IconButton(
+        icon: Icon(Icons.play_arrow, color: Colors.white, size: 32),
+        alignment: Alignment.center,
+        onPressed: () => _toggleTimer(),
+      );
     } else {
-      return MaterialButton(
-          child: Text("Stop"),
-          onPressed: () {
-            _toggleTimer();
-          },
-          color: Colors.orangeAccent);
+      return IconButton(
+        icon: Icon(Icons.stop, color: Colors.white, size: 32),
+        alignment: Alignment.center,
+        onPressed: () => _toggleTimer(),
+      );
     }
   }
 
   String getTempo() {
-    var sliceOfString = _tempo.toString().substring(8, 11);
+    var sliceOfString = _tempoDuration.toString().substring(8, 11);
     var intTempo = (60000 / int.parse(sliceOfString)).round();
     return intTempo.toString();
   }
@@ -131,58 +124,100 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: Center(
-          child: Stack(children: <Widget>[
-            Container(), // Makes the stack full screen size.
-            Center(
+        backgroundColor: Colors.white.withOpacity(0.1),
+        body: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.light,
+          child: Stack(
+            children: <Widget>[
+              Column(children: <Widget>[
+                buildMetroRetro(context),
+                buildControlPanel(),
+              ]),
+              Positioned(
+                right: -4,
+                bottom: _sliderOffset,
+                child: RotatedBox(
+                  quarterTurns: 3,
+                  child: TempoSlider(
+                    width: MediaQuery.of(context).size.height -
+                        (_sliderOffset * 2),
+                    color: Colors.white,
+                    onChanged: (val) => _setTempo(val),
+                    onChangedStart: (val) => _setTempo(val),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -4,
+                bottom: _sliderOffset,
+                child: RotatedBox(
+                  quarterTurns: 1,
+                  child: TempoSlider(
+                    width: MediaQuery.of(context).size.height -
+                        (_sliderOffset * 2),
+                    color: Colors.white,
+                    onChanged: (val) => null,
+                    onChangedStart: (val) => null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ));
+  }
+
+  Container buildControlPanel() {
+    return Container(
+        height: 100,
+        width: double.infinity,
+        decoration: BoxDecoration(
+            color: Colors.orange.withOpacity(0.04),
+            border: Border(
+                top:
+                    BorderSide(width: 2.0, color: Colors.deepOrange.shade800))),
+        child: Row(children: <Widget>[
+          Expanded(
+            child: Container(
+                color: Colors.black12,
+                alignment: Alignment.center,
+                height: double.infinity,
+                child: Text(
+                  '$_beat / $_bar',
+                  style: Theme.of(context).textTheme.display1,
+                )),
+          ),
+          Expanded(
+              child: Container(
+            color: Colors.black26,
+            alignment: Alignment.center,
+            height: double.infinity,
+            child: Container(child: _buildToggleButton()),
+          )),
+          Expanded(
+            child: Container(
+                alignment: Alignment.center,
+                color: Colors.black12,
+                height: double.infinity,
+                child: Text(_tempoInt.toString(),
+                    style: Theme.of(context).textTheme.display1)),
+          )
+        ]));
+  }
+
+  /// Creates the main section where animations that represent the metronome are viewed.
+  Expanded buildMetroRetro(BuildContext context) {
+    return Expanded(
+        flex: 1,
+        child: Container(
+          color: Colors.orange.withOpacity(0.02),
+          child: Container(
+              width: double.infinity,
+              color: Colors.black12,
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Text(
-                      '$_beat / $_bar',
-                      style: Theme.of(context).textTheme.display1,
-                    ),
-                    _buildToggleButton(),
-                    Text(
-                      getTempo(),
-                      style: Theme.of(context).textTheme.display1,
-                    ),
                     // InteractableWidget,
-                  ]),
-            ),
-            TempoScroller(
-              notifyParent: _onVerticalGesture,
-              handleOVDE: _onReleaseTempoSlider,
-            )
-          ]),
+                  ])),
         ));
-  }
-}
-
-class TempoScroller extends StatelessWidget {
-  final Function(DragUpdateDetails details) notifyParent;
-  final Function() handleOVDE;
-  TempoScroller(
-      {Key key, @required this.notifyParent, @required this.handleOVDE})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-        top: 0,
-        bottom: 0,
-        right: 0,
-        child: Container(
-            width: 45.0,
-            child: GestureDetector(
-                child: Container(color: Colors.lightGreen.withOpacity(0.3)),
-                onVerticalDragEnd: (e) => handleOVDE(),
-                onVerticalDragDown: (e) => print(e),
-                onVerticalDragUpdate: (e) {
-                  notifyParent(e);
-                })));
   }
 }
