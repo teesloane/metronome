@@ -218,7 +218,7 @@ class WavePainter extends CustomPainter {
 
   /// Main paint loop: paints the anchor of the tempoSlider, and the wave line.
   void paint(Canvas canvas, Size size) {
-    _paintAnchors(canvas, size);
+    // _paintAnchors(canvas, size);
 
     switch (sliderState) {
       case (SliderState.starting):

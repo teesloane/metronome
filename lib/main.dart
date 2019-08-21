@@ -47,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
   double minTempo = 30;
   Duration _tempoDuration = Duration(milliseconds: 500);
   bool _isRunning = false;
-  double _sliderOffset = 50;
+  double _sliderOffset = 100;
 
   // Methods --
 
@@ -99,21 +99,19 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  MaterialButton _buildToggleButton() {
+  _buildToggleButton() {
     if (!_isRunning) {
-      return MaterialButton(
-          child: Text("Start"),
-          onPressed: () {
-            _toggleTimer();
-          },
-          color: Colors.orangeAccent);
+      return IconButton(
+        icon: Icon(Icons.play_arrow, color: Colors.white, size: 32),
+        alignment: Alignment.center,
+        onPressed: () => _toggleTimer(),
+      );
     } else {
-      return MaterialButton(
-          child: Text("Stop"),
-          onPressed: () {
-            _toggleTimer();
-          },
-          color: Colors.orangeAccent);
+      return IconButton(
+        icon: Icon(Icons.stop, color: Colors.white, size: 32),
+        alignment: Alignment.center,
+        onPressed: () => _toggleTimer(),
+      );
     }
   }
 
@@ -128,39 +126,93 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
         backgroundColor: Colors.white.withOpacity(0.1),
         body: Center(
-          child: Stack(children: <Widget>[
-            Container(), // Makes the stack full screen size.
-            Center(
+          child: Stack(
+            children: <Widget>[
+              Column(children: <Widget>[
+                buildMetroRetro(context),
+                buildControlPanel(),
+              ]),
+              Positioned(
+                right: -4,
+                bottom: _sliderOffset,
+                child: RotatedBox(
+                  quarterTurns: 3,
+                  child: TempoSlider(
+                    width: MediaQuery.of(context).size.height -
+                        (_sliderOffset * 2),
+                    color: Colors.white,
+                    onChanged: (val) => _setTempo(val),
+                    onChangedStart: (val) => _setTempo(val),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -4,
+                bottom: _sliderOffset,
+                child: RotatedBox(
+                  quarterTurns: 1,
+                  child: TempoSlider(
+                    width: MediaQuery.of(context).size.height -
+                        (_sliderOffset * 2),
+                    color: Colors.white,
+                    onChanged: (val) => _setTempo(val),
+                    onChangedStart: (val) => _setTempo(val),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ));
+  }
+
+  Container buildControlPanel() {
+    return Container(
+        height: 100,
+        width: double.infinity,
+        color: Colors.orange.withOpacity(0.04),
+        child: Row(children: <Widget>[
+          Expanded(
+            child: Container(
+                color: Colors.black12,
+                alignment: Alignment.center,
+                height: double.infinity,
+                child: Text(
+                  '$_beat / $_bar',
+                  style: Theme.of(context).textTheme.display1,
+                )),
+          ),
+          Expanded(
+              child: Container(
+            color: Colors.black26,
+            alignment: Alignment.center,
+            height: double.infinity,
+            child: Container(child: _buildToggleButton()),
+          )),
+          Expanded(
+            child: Container(
+                alignment: Alignment.center,
+                color: Colors.black12,
+                height: double.infinity,
+                child: Text(_tempoInt.toString(),
+                    style: Theme.of(context).textTheme.display1)),
+          )
+        ]));
+  }
+
+  /// Creates the main section where animations that represent the metronome are viewed.
+  Expanded buildMetroRetro(BuildContext context) {
+    return Expanded(
+        flex: 1,
+        child: Container(
+          color: Colors.orange.withOpacity(0.02),
+          child: Container(
+              width: double.infinity,
+              color: Colors.black12,
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Text('$_beat / $_bar',
-                      style: Theme.of(context).textTheme.display4,
-                    ),
-                    _buildToggleButton(),
-                    Text(
-                      _tempoInt.toString(),
-                      style: Theme.of(context).textTheme.display4,
-                    ),
                     // InteractableWidget,
-                  ]),
-            ),
-
-            Positioned(
-              right: 0,
-              bottom: _sliderOffset,
-              child: RotatedBox(
-                quarterTurns: 3,
-                child: TempoSlider(
-                  width:
-                      MediaQuery.of(context).size.height - (_sliderOffset * 2),
-                  color: Colors.orange,
-                  onChanged: (val) => _setTempo(val),
-                  onChangedStart: (val) => _setTempo(val),
-                ),
-              ),
-            )
-          ]),
+                  ])),
         ));
   }
 }

@@ -8,10 +8,11 @@ MVP:
   ✔ Display tempo @done(19-08-11 16:21)
   ✔ Allow changing tempo (by sliding up/down right side) @done(19-08-18 20:04)
   ☐ allow changing time signature (ie, change `_bar`)
-  ☐ Enable changing selected sounds.
+  ☐ new bar should start on a different sound.
 
 VP / Ideas:
   ☐ Display recent tempos
+  ☐ Enable changing selected sounds.
   ☐ Store last chosen tempo on re-opening application
   ☐ Show animations for each style (3/4, 4/4):
     ☐ Shapes
