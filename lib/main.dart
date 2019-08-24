@@ -78,10 +78,21 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  double _lerp(double value) {
+    var max = 1000;
+    var min = 500;
+    assert(value >= 0.0);
+    assert(value <= 1.0);
+    return value * (max - min) + min;
+  }
+
   _setTempo(double sliderVal) {
+    print(sliderVal);
     var _newTempo = (sliderVal * 100).toInt();
-    var _scaledTempo =
-        scaleNum(_newTempo, 0, 100, bpmToMS(minTempo), bpmToMS(maxTempo));
+    // var _scaledTempo =
+    //     scaleNum(_newTempo, 0, 100, bpmToMS(minTempo), bpmToMS(maxTempo));
+
+    var _scaledTempo = _lerp(sliderVal);
 
     // if running, cancel timer and restart it.
     if (_isRunning) {
