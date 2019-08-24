@@ -43,8 +43,6 @@ class _MyHomePageState extends State<MyHomePage> {
   int _beat = 1;
   int _bar = 4;
   int _tempoInt = 120;
-  double maxTempo = 300;
-  double minTempo = 30;
   Duration _tempoDuration = Duration(milliseconds: 500);
   bool _isRunning = false;
   double _sliderOffset = 100;
@@ -78,21 +76,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  double _lerp(double value) {
-    var max = 1000;
-    var min = 500;
-    assert(value >= 0.0);
-    assert(value <= 1.0);
-    return value * (max - min) + min;
-  }
-
   _setTempo(double sliderVal) {
     print(sliderVal);
-    var _newTempo = (sliderVal * 100).toInt();
-    // var _scaledTempo =
-    //     scaleNum(_newTempo, 0, 100, bpmToMS(minTempo), bpmToMS(maxTempo));
-
-    var _scaledTempo = _lerp(sliderVal);
+    // let's lerp the tempo, where max is 1000ms(60bpm) and min is 250ms(240)bpm
+    var _scaledTempo = sliderVal * (1000 - 250) + 250;
 
     // if running, cancel timer and restart it.
     if (_isRunning) {
