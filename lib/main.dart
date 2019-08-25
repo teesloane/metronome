@@ -50,7 +50,6 @@ class _MyHomePageState extends State<MyHomePage> {
   // Methods --
 
   void _metroInc(Timer timer) {
-    player.play("beep.mp3");
     if (_beat == _bar) {
       setState(() {
         _beat = 1;
@@ -60,6 +59,14 @@ class _MyHomePageState extends State<MyHomePage> {
         _beat++;
       });
     }
+
+    // Play the sound
+    if(_beat == 1) {
+      player.play("beep_1.mp3");
+    } else {
+      player.play("beep_2.mp3");
+    }
+
   }
 
   void _toggleTimer() {
@@ -67,6 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _timer.cancel();
         _isRunning = false;
+        _beat = 1;
       });
     } else {
       setState(() {
