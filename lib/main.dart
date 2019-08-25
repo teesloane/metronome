@@ -47,9 +47,19 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isRunning = false;
   double _sliderOffset = 100;
 
+  final Map signatures = {
+    0.1: [2, 4],
+    0.2: [4, 4],
+    0.3: [6, 4],
+    0.4: [3, 4]
+  };
+
   // Methods --
 
+  /// Increments the beats of the time signature.
   void _metroInc(Timer timer) {
+    // print(this.signatures[0.1]);
+
     if (_beat == _bar) {
       setState(() {
         _beat = 1;
@@ -61,12 +71,11 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     // Play the sound
-    if(_beat == 1) {
+    if (_beat == 1) {
       player.play("beep_1.mp3");
     } else {
       player.play("beep_2.mp3");
     }
-
   }
 
   void _toggleTimer() {
@@ -85,7 +94,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _setTempo(double sliderVal) {
-    print(sliderVal);
     // let's lerp the tempo, where max is 1000ms(60bpm) and min is 250ms(240)bpm
     var _scaledTempo = sliderVal * (1000 - 250) + 250;
 
@@ -104,6 +112,32 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
   }
+
+  void _setTimeSignature(double v) {
+    // print("v is $v");
+    if(v > 0.0 && v <= 0.1) {
+      print("!!!!!!!!!");
+      setState(() {
+        
+      });
+
+    } else if(v > 0.1 && v <= 0.2) {
+      print("333333333");
+
+    } else if(v > 0.2 && v <= 0.3) {
+      print("999999999");
+
+    } else if(v > 0.3 && v <= 0.4) {
+      print("@@@@@@@@@");
+
+    } else if(v > 0.4 && v <= 0.5) {
+      print("*********");
+    }
+  }
+
+
+
+
 
   _buildToggleButton() {
     if (!_isRunning) {
@@ -162,8 +196,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: MediaQuery.of(context).size.height -
                         (_sliderOffset * 2),
                     color: Colors.white,
-                    onChanged: (val) => null,
-                    onChangedStart: (val) => null,
+                    onChanged: (val) => _setTimeSignature(val),
+                    onChangedStart: (val) => _setTimeSignature(val)
                   ),
                 ),
               ),
