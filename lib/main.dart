@@ -41,17 +41,25 @@ class _MyHomePageState extends State<MyHomePage> {
   static AudioCache player = AudioCache();
   Timer _timer;
   int _beat = 1;
-  int _bar = 4;
+  int _tsTop = 4;
+  int _tsBottom = 4;
   int _tempoInt = 120;
   Duration _tempoDuration = Duration(milliseconds: 500);
   bool _isRunning = false;
   double _sliderOffset = 100;
 
   final Map signatures = {
-    0.1: [2, 4],
+    0.0: [3, 4],
+    0.1: [3, 4],
     0.2: [4, 4],
-    0.3: [6, 4],
-    0.4: [3, 4]
+    0.3: [4, 4],
+    0.4: [5, 4],
+    0.5: [5, 4],
+    0.6: [6, 4],
+    0.7: [6, 4],
+    0.8: [6, 8],
+    0.9: [6, 8],
+    1.0: [12, 8],
   };
 
   // Methods --
@@ -60,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _metroInc(Timer timer) {
     // print(this.signatures[0.1]);
 
-    if (_beat == _bar) {
+    if (_beat == _tsBottom) {
       setState(() {
         _beat = 1;
       });
@@ -113,31 +121,25 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _setTimeSignature(double v) {
-    // print("v is $v");
-    if(v > 0.0 && v <= 0.1) {
-      print("!!!!!!!!!");
-      setState(() {
-        
-      });
+  // Time Signature stuff ---
 
-    } else if(v > 0.1 && v <= 0.2) {
-      print("333333333");
+  void _setTimeSignatureState(keydex) {
+    setState(() {
+      _tsTop = signatures[keydex][0];
+      _tsBottom = signatures[keydex][1];
+    });
 
-    } else if(v > 0.2 && v <= 0.3) {
-      print("999999999");
-
-    } else if(v > 0.3 && v <= 0.4) {
-      print("@@@@@@@@@");
-
-    } else if(v > 0.4 && v <= 0.5) {
-      print("*********");
-    }
   }
 
-
-
-
+  /// Turns a slider perentage into pulling vals out of sig map
+  /// and setting them into the _ts states.
+  void _setTimeSignature(double v) {
+    var n = num.parse(v.toStringAsFixed(1));
+    setState(() {
+      _tsTop = signatures[n][0];
+      _tsBottom = signatures[n][1];
+    });
+  }
 
   _buildToggleButton() {
     if (!_isRunning) {
@@ -222,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 alignment: Alignment.center,
                 height: double.infinity,
                 child: Text(
-                  '$_beat / $_bar',
+                  '$_tsTop / $_tsBottom',
                   style: Theme.of(context).textTheme.display1,
                 )),
           ),
