@@ -133,6 +133,8 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  // —— Builder Fns ———————————————————————————————————————————————————————————
+
   _buildToggleButton() {
     if (!_isRunning) {
       return IconButton(
@@ -147,57 +149,6 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () => _toggleTimer(),
       );
     }
-  }
-
-  String getTempo() {
-    var sliceOfString = _tempoDuration.toString().substring(8, 11);
-    var intTempo = (60000 / int.parse(sliceOfString)).round();
-    return intTempo.toString();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.white.withOpacity(0.1),
-        body: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle.light,
-          child: Stack(
-            children: <Widget>[
-              Column(children: <Widget>[
-                buildMetroRetro(context),
-                buildControlPanel(),
-              ]),
-              Positioned(
-                right: -4,
-                bottom: _sliderOffset,
-                child: RotatedBox(
-                  quarterTurns: 3,
-                  child: TempoSlider(
-                    width: MediaQuery.of(context).size.height -
-                        (_sliderOffset * 2),
-                    color: Colors.white,
-                    onChanged: (val) => _setTempo(val),
-                    onChangedStart: (val) => _setTempo(val),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: -4,
-                bottom: _sliderOffset,
-                child: RotatedBox(
-                  quarterTurns: 1,
-                  child: TempoSlider(
-                    width: MediaQuery.of(context).size.height -
-                        (_sliderOffset * 2),
-                    color: Colors.white,
-                    onChanged: (val) => _setTimeSignature(val),
-                    onChangedStart: (val) => _setTimeSignature(val)
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ));
   }
 
   Container buildControlPanel() {
@@ -254,4 +205,57 @@ class _MyHomePageState extends State<MyHomePage> {
                   ])),
         ));
   }
+
+
+  String getTempo() {
+    var sliceOfString = _tempoDuration.toString().substring(8, 11);
+    var intTempo = (60000 / int.parse(sliceOfString)).round();
+    return intTempo.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor: Colors.white.withOpacity(0.1),
+        body: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.light,
+          child: Stack(
+            children: <Widget>[
+              Column(children: <Widget>[
+                buildMetroRetro(context),
+                buildControlPanel(),
+              ]),
+              Positioned(
+                right: -4,
+                bottom: _sliderOffset,
+                child: RotatedBox(
+                  quarterTurns: 3,
+                  child: TempoSlider(
+                    width: MediaQuery.of(context).size.height -
+                        (_sliderOffset * 2),
+                    color: Colors.white,
+                    onChanged: (val) => _setTempo(val),
+                    onChangedStart: (val) => _setTempo(val),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -4,
+                bottom: _sliderOffset,
+                child: RotatedBox(
+                  quarterTurns: 1,
+                  child: TempoSlider(
+                    width: MediaQuery.of(context).size.height -
+                        (_sliderOffset * 2),
+                    color: Colors.white,
+                    onChanged: (val) => _setTimeSignature(val),
+                    onChangedStart: (val) => _setTimeSignature(val)
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ));
+  }
+
 }
