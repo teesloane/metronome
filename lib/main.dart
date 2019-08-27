@@ -40,14 +40,24 @@ class _MyHomePageState extends State<MyHomePage> {
   //
   static AudioCache player = AudioCache();
   Timer _timer;
+  /// The incremented beat.
   int _beat = 1;
+  /// The top number on the time signature.
   int _tsTop = 4;
+  /// The bottom number on the time signature.
   int _tsBottom = 4;
+  /// UI - The current tempo
   int _tempoInt = 120;
+  /// The ms duration for the Darty async timer.
   Duration _tempoDuration = Duration(milliseconds: 500);
+  /// Whether or not the metronome is running
   bool _isRunning = false;
+  /// Used for deciding the UI offset of the sliders.
   double _sliderOffset = 100;
-
+  /// Most recent slider value.
+  double _lastTempoSliderVal = 0.5;
+  /// Map of time signatures; _tsTop and _tsBottom are set based on the time signature slider 
+  /// as the value of the slider pulls values out of this map.
   final Map signatures = {
     0.0: [3, 4],
     0.1: [3, 4],
@@ -62,13 +72,13 @@ class _MyHomePageState extends State<MyHomePage> {
     1.0: [12, 8],
   };
 
+
   // Methods --
 
   /// Increments the beats of the time signature.
+  /// Runs checks on time signature to determine downbeat.
   void _metroInc(Timer timer) {
-    // print(this.signatures[0.1]);
-
-    if (_beat == _tsBottom) {
+    if (_beat == _tsTop) {
       setState(() {
         _beat = 1;
       });
@@ -80,9 +90,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Play the sound
     if (_beat == 1) {
-      player.play("beep_1.mp3");
+      player.play("click_1.mp3");
     } else {
-      player.play("beep_2.mp3");
+      player.play("click_2.mp3");
     }
   }
 
@@ -101,22 +111,32 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  /// Sets the tempo of the metronome via incoming tempo slider value.
+  /// If the timer is running, it cancels it and restarts it with the new tempo.
   _setTempo(double sliderVal) {
     // let's lerp the tempo, where max is 1000ms(60bpm) and min is 250ms(240)bpm
     var _scaledTempo = sliderVal * (1000 - 250) + 250;
+    var uiTempo = _scaledTempo;
+
+    // This is hacky, should have been counting by eighth notes from the beginning.
+    if (_tsBottom == 8) {
+      _scaledTempo /= 2;
+    }
 
     // if running, cancel timer and restart it.
     if (_isRunning) {
       _timer.cancel();
       setState(() {
+        _lastTempoSliderVal = sliderVal;
         _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
-        _tempoInt = msToBpm(_scaledTempo).toInt();
+        _tempoInt = msToBpm(uiTempo).toInt();
         _timer = Timer.periodic(_tempoDuration, _metroInc);
       });
     } else {
       setState(() {
+        _lastTempoSliderVal = sliderVal;
         _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
-        _tempoInt = msToBpm(_scaledTempo).toInt();
+        _tempoInt = msToBpm(uiTempo).toInt();
       });
     }
   }
@@ -131,6 +151,8 @@ class _MyHomePageState extends State<MyHomePage> {
       _tsTop = signatures[n][0];
       _tsBottom = signatures[n][1];
     });
+
+    _setTempo(_lastTempoSliderVal);
   }
 
   // —— Builder Fns ———————————————————————————————————————————————————————————
