@@ -123,14 +123,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Time Signature stuff ---
 
-  void _setTimeSignatureState(keydex) {
-    setState(() {
-      _tsTop = signatures[keydex][0];
-      _tsBottom = signatures[keydex][1];
-    });
-
-  }
-
   /// Turns a slider perentage into pulling vals out of sig map
   /// and setting them into the _ts states.
   void _setTimeSignature(double v) {
