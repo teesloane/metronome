@@ -119,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> with FlareController {
       _metroShapeTime = 0;
       _metroShape.apply(
           _metroShapeTime % _metroShape.duration, artboard, _rockAmount);
-      return false;
+      return true;
     }
   }
 
