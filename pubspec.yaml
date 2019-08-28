@@ -24,6 +24,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
   audioplayers: ^0.13.1
+  flare_flutter: any
 
 
 dev_dependencies:
@@ -48,6 +49,7 @@ flutter:
     - assets/beep_2.mp3
     - assets/click_1.mp3
     - assets/click_2.mp3
+    - ani_square.flr
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

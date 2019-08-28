@@ -1,4 +1,8 @@
 import 'package:audioplayers/audio_cache.dart';
+import 'package:flare_dart/math/mat2d.dart';
+import 'package:flare_flutter/flare.dart';
+import 'package:flare_flutter/flare_actor.dart';
+import 'package:flare_flutter/flare_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,29 +38,44 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with FlareController {
   //
   // -- State
   //
   static AudioCache player = AudioCache();
   Timer _timer;
+
   /// The incremented beat.
   int _beat = 1;
+
   /// The top number on the time signature.
   int _tsTop = 4;
+
   /// The bottom number on the time signature.
   int _tsBottom = 4;
+
   /// UI - The current tempo
   int _tempoInt = 120;
+
   /// The ms duration for the Darty async timer.
   Duration _tempoDuration = Duration(milliseconds: 500);
+
   /// Whether or not the metronome is running
   bool _isRunning = false;
+
   /// Used for deciding the UI offset of the sliders.
   double _sliderOffset = 100;
+
   /// Most recent slider value.
   double _lastTempoSliderVal = 0.5;
-  /// Map of time signatures; _tsTop and _tsBottom are set based on the time signature slider 
+
+  /// Min/Max Tempo
+  static double _minTempoBpm = 60;
+  static double _maxTempoBpm = 240;
+  double _maxTempoMS = bpmToMS(_maxTempoBpm);
+  double _minTempoMS = bpmToMS(_minTempoBpm);
+
+  /// Map of time signatures; _tsTop and _tsBottom are set based on the time signature slider
   /// as the value of the slider pulls values out of this map.
   final Map signatures = {
     0.0: [3, 4],
@@ -72,12 +91,59 @@ class _MyHomePageState extends State<MyHomePage> {
     1.0: [12, 8],
   };
 
+  // ANIMATION OVERRIDES ----
+  //
+  double _rockAmount = 0.5; // ???
+
+// speed needs to be mapped between 0.5 (60pm) and 2.0 (240bpm)
+// basically, take tempo and map it's current value between 0.5 -> 2.0
+  double _speed = 1.0; // 1.0 = 120bpm
+  double _metroShapeTime = 0.0;
+  ActorAnimation _metroShape;
+
+  // Supers and Overrides
+
+  @override
+  bool advance(FlutterActorArtboard artboard, double elapsed) {
+    // map tempo range to animation speed.
+    // var lambda = () => _metroShape.apply(_metroShapeTime, artboard, _rockAmount);
+
+    _speed = scaleNum(_tempoInt, _minTempoBpm, _maxTempoBpm, 0.5, 2.0);
+    // wondering if this should be in a setState call.
+    if (_isRunning) {
+      _metroShapeTime += elapsed * _speed;
+      _metroShape.apply(
+          _metroShapeTime % _metroShape.duration, artboard, _rockAmount);
+      return true;
+    } else {
+      _metroShapeTime = 0;
+      _metroShape.apply(
+          _metroShapeTime % _metroShape.duration, artboard, _rockAmount);
+      return false;
+    }
+  }
+
+  @override
+  void initialize(FlutterActorArtboard artboard) {
+    _metroShape = artboard.getAnimation("SquareGo");
+  }
+
+  @override
+  void setViewTransform(Mat2D viewTransform) {}
 
   // Methods --
 
   /// Increments the beats of the time signature.
   /// Runs checks on time signature to determine downbeat.
   void _metroInc(Timer timer) {
+    // Play the sound
+    if (_beat == 1) {
+      player.play("click_1.mp3");
+    } else {
+      player.play("click_2.mp3");
+    }
+
+    // reset the beat to one if it matches time sig top
     if (_beat == _tsTop) {
       setState(() {
         _beat = 1;
@@ -86,13 +152,6 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _beat++;
       });
-    }
-
-    // Play the sound
-    if (_beat == 1) {
-      player.play("click_1.mp3");
-    } else {
-      player.play("click_2.mp3");
     }
   }
 
@@ -112,29 +171,42 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   /// Sets the tempo of the metronome via incoming tempo slider value.
-  /// If the timer is running, it cancels it and restarts it with the new tempo.
+  /// TODO: Should be converted to "onSlider" -> change the ui tempo; that's all it does.
   _setTempo(double sliderVal) {
     // let's lerp the tempo, where max is 1000ms(60bpm) and min is 250ms(240)bpm
-    var _scaledTempo = sliderVal * (1000 - 250) + 250;
+    var _scaledTempo = sliderVal * (_minTempoMS - _maxTempoMS) + _maxTempoMS;
+    _lastTempoSliderVal = sliderVal;
+    if (_isRunning) {
+      _timer.cancel();
+    }
+    setState(() {
+      _tempoInt = msToBpm(_scaledTempo).toInt();
+    });
+  }
+
+  /// - Sets the new tempo when user releases slider
+  /// - If metrotimer is running, it resumes it.
+  /// - Sets the final UI tempo to be viewed by user.
+  void _handleDragEnd() {
+    var _scaledTempo =
+        _lastTempoSliderVal * (_minTempoMS - _maxTempoMS) + _maxTempoMS;
     var uiTempo = _scaledTempo;
 
-    // This is hacky, should have been counting by eighth notes from the beginning.
     if (_tsBottom == 8) {
       _scaledTempo /= 2;
     }
 
-    // if running, cancel timer and restart it.
     if (_isRunning) {
-      _timer.cancel();
       setState(() {
-        _lastTempoSliderVal = sliderVal;
         _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
         _tempoInt = msToBpm(uiTempo).toInt();
         _timer = Timer.periodic(_tempoDuration, _metroInc);
+        // reset beat count and animation.
+        _beat = 1;
+        _metroShapeTime = 0;
       });
     } else {
       setState(() {
-        _lastTempoSliderVal = sliderVal;
         _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
         _tempoInt = msToBpm(uiTempo).toInt();
       });
@@ -223,11 +295,21 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
+                    Container(
+                      height: 128,
+                      // <-- 4. Main menu row
+                      child: FlareActor(
+                        'assets/ani_square.flr',
+                        alignment: Alignment.center,
+                        fit: BoxFit.contain,
+                        animation: "nil", // SquareGo
+                        controller: this,
+                      ),
+                    )
                     // InteractableWidget,
                   ])),
         ));
   }
-
 
   String getTempo() {
     var sliceOfString = _tempoDuration.toString().substring(8, 11);
@@ -258,6 +340,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     color: Colors.white,
                     onChanged: (val) => _setTempo(val),
                     onChangedStart: (val) => _setTempo(val),
+                    onChangedFinish: (v) => _handleDragEnd(),
                   ),
                 ),
               ),
@@ -265,19 +348,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 left: -4,
                 bottom: _sliderOffset,
                 child: RotatedBox(
-                  quarterTurns: 1,
-                  child: TempoSlider(
-                    width: MediaQuery.of(context).size.height -
-                        (_sliderOffset * 2),
-                    color: Colors.white,
-                    onChanged: (val) => _setTimeSignature(val),
-                    onChangedStart: (val) => _setTimeSignature(val)
-                  ),
-                ),
+                    quarterTurns: 1,
+                    child: TempoSlider(
+                      width: MediaQuery.of(context).size.height -
+                          (_sliderOffset * 2),
+                      color: Colors.white,
+                      onChanged: (val) => _setTimeSignature(val),
+                      onChangedStart: (val) => _setTimeSignature(val),
+                      onChangedFinish: (v) => _handleDragEnd(),
+                    )),
               ),
             ],
           ),
         ));
   }
-
 }

@@ -10,13 +10,15 @@ class TempoSlider extends StatefulWidget {
 
   final ValueChanged<double> onChanged;
   final ValueChanged<double> onChangedStart;
+  final ValueChanged<double> onChangedFinish; // not sure if <double> is needed; doesn't need a param.
 
   const TempoSlider(
       {this.width,
       this.height = 50,
       this.color = Colors.black,
       @required this.onChanged,
-      @required this.onChangedStart});
+      @required this.onChangedStart,
+      this.onChangedFinish});
 
   @override
   _TempoSliderState createState() => _TempoSliderState();
@@ -93,6 +95,7 @@ class _TempoSliderState extends State<TempoSlider>
 
   void _onDragEnd(BuildContext ctx, DragEndDetails end) {
     _slideController.setStateToStopping();
+    widget.onChangedFinish(0.0); // 0.0 is a hack till I figure out typed callbacks.
     setState(() {}); // empty setState to rebuild on dragEnd
   }
 
