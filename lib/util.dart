@@ -16,3 +16,5 @@ msToBpm(double ms) {
 bpmToMS(double bpm) {
   return  60000 / bpm;
 }
+
+// (120 - 60) / (240 - 60) * (2.0 - 0.5) + 0.5
