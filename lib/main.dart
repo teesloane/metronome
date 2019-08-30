@@ -6,6 +6,7 @@ import 'package:flare_flutter/flare_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:metronome/ctrl_vis.dart';
 import 'package:metronome/tempoSlider.dart';
 import 'package:metronome/util.dart';
 import 'dart:async';
@@ -38,10 +39,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with FlareController {
-  //
-  // -- State
-  //
+class _MyHomePageState extends State<MyHomePage> {
   static AudioCache player = AudioCache();
   Timer _timer;
 
@@ -78,17 +76,17 @@ class _MyHomePageState extends State<MyHomePage> with FlareController {
   /// Map of time signatures; _tsTop and _tsBottom are set based on the time signature slider
   /// as the value of the slider pulls values out of this map.
   final Map signatures = {
-    0.0: [3, 4],
-    0.1: [3, 4],
-    0.2: [4, 4],
-    0.3: [4, 4],
-    0.4: [5, 4],
-    0.5: [5, 4],
-    0.6: [6, 4],
-    0.7: [6, 4],
-    0.8: [6, 8],
-    0.9: [6, 8],
-    1.0: [12, 8],
+    0.0: [3, 4, "Idle"],
+    0.1: [3, 4, "Triangle"],
+    0.2: [4, 4, "Square"],
+    0.3: [4, 4, "Square"],
+    0.4: [5, 4, "Square"],
+    0.5: [5, 4, "Square"],
+    0.6: [6, 4, "Square"],
+    0.7: [6, 4, "Square"],
+    0.8: [6, 8, "Square"],
+    0.9: [6, 8, "Square"],
+    1.0: [12, 8, "Square"],
   };
 
   // ANIMATION OVERRIDES ----
@@ -99,37 +97,59 @@ class _MyHomePageState extends State<MyHomePage> with FlareController {
 // basically, take tempo and map it's current value between 0.5 -> 2.0
   double _speed = 1.0; // 1.0 = 120bpm
   double _metroShapeTime = 0.0;
-  ActorAnimation _metroShape;
+
+  // ANIMATION LAYERS
+  ActorAnimation _aniSquare;
+  // ActorAnimation _aniSquare;
+  ActorAnimation _aniTri;
+
+  double _currentSig = 0.4;
 
   // Supers and Overrides
+  MetroSimple _metroVisualizationCtlr; // better naming.
 
   @override
-  bool advance(FlutterActorArtboard artboard, double elapsed) {
-    // map tempo range to animation speed.
-    // var lambda = () => _metroShape.apply(_metroShapeTime, artboard, _rockAmount);
-
-    _speed = scaleNum(_tempoInt, _minTempoBpm, _maxTempoBpm, 0.5, 2.0);
-    // wondering if this should be in a setState call.
-    if (_isRunning) {
-      _metroShapeTime += elapsed * _speed;
-      _metroShape.apply(
-          _metroShapeTime % _metroShape.duration, artboard, _rockAmount);
-      return true;
-    } else {
-      _metroShapeTime = 0;
-      _metroShape.apply(
-          _metroShapeTime % _metroShape.duration, artboard, _rockAmount);
-      return true;
-    }
+  void initState() {
+    _metroVisualizationCtlr = MetroSimple(); // better naming
+    super.initState();
   }
 
-  @override
-  void initialize(FlutterActorArtboard artboard) {
-    _metroShape = artboard.getAnimation("SquareGo");
-  }
+  // @override
+  // bool advance(FlutterActorArtboard artboard, double elapsed) {
+  //   // map tempo range to animation speed.
+  //   _speed = scaleNum(_tempoInt, _minTempoBpm, _maxTempoBpm, 0.5, 2.0);
 
-  @override
-  void setViewTransform(Mat2D viewTransform) {}
+  //   // var _currentAni;
+  //   // if (signatures[_currentSig][2] == "Triangle") {
+  //   //   _currentAni = _aniTri;
+  //   // } else {
+  //   //   _currentAni = _aniSquare;
+  //   // }
+
+  //   // wondering if this should be in a setState call.
+  //   if (_isRunning) {
+  //     _metroShapeTime += elapsed * _speed;
+  //     // _aniSquare.apply( _metroShapeTime % _aniSquare.duration, artboard, _rockAmount);
+  //     _aniTri.apply( _metroShapeTime % _aniSquare.duration, artboard, _rockAmount);
+  //     return true;
+  //   } else {
+  //     _metroShapeTime = 0;
+  //     // _aniSquare.apply( _metroShapeTime % _aniSquare.duration, artboard, _rockAmount);
+  //     _aniTri .apply( _metroShapeTime % _aniSquare.duration, artboard, _rockAmount);
+  //     // _currentAni.apply( _metroShapeTime % _currentAni.duration, artboard, _rockAmount);
+  //     // return false;
+  //     return false;
+  //   }
+  // }
+
+  // @override
+  // void initialize(FlutterActorArtboard artboard) {
+  //   _aniSquare = artboard.getAnimation("Square");
+  //   _aniTri = artboard.getAnimation("Triangle");
+  // }
+
+  // @override
+  // void setViewTransform(Mat2D viewTransform) {}
 
   // Methods --
 
@@ -162,11 +182,13 @@ class _MyHomePageState extends State<MyHomePage> with FlareController {
         _isRunning = false;
         _beat = 1;
       });
+      // _metroVisualizationCtlr.stop();
     } else {
       setState(() {
         _timer = Timer.periodic(_tempoDuration, _metroInc);
         _isRunning = true;
       });
+      // _metroVisualizationCtlr.playAnimation("Square");
     }
   }
 
@@ -222,7 +244,9 @@ class _MyHomePageState extends State<MyHomePage> with FlareController {
     setState(() {
       _tsTop = signatures[n][0];
       _tsBottom = signatures[n][1];
+      _currentSig = n;
     });
+    _metroVisualizationCtlr.updateMix(signatures[n][2]);
 
     _setTempo(_lastTempoSliderVal);
   }
@@ -298,13 +322,11 @@ class _MyHomePageState extends State<MyHomePage> with FlareController {
                     Container(
                       height: 128,
                       // <-- 4. Main menu row
-                      child: FlareActor(
-                        'assets/ani_square.flr',
-                        alignment: Alignment.center,
-                        fit: BoxFit.contain,
-                        animation: "nil", // SquareGo
-                        controller: this,
-                      ),
+                      child: FlareActor('assets/ani_square_dup.flr',
+                          alignment: Alignment.center,
+                          fit: BoxFit.contain,
+                          // animation: "Idle",
+                          controller: _metroVisualizationCtlr),
                     )
                     // InteractableWidget,
                   ])),
@@ -355,7 +377,7 @@ class _MyHomePageState extends State<MyHomePage> with FlareController {
                       color: Colors.white,
                       onChanged: (val) => _setTimeSignature(val),
                       onChangedStart: (val) => _setTimeSignature(val),
-                      onChangedFinish: (v) => _handleDragEnd(),
+                      onChangedFinish: (v) => null,
                     )),
               ),
             ],
