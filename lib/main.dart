@@ -246,7 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _tsBottom = signatures[n][1];
       _currentSig = n;
     });
-    _metroVisualizationCtlr.updateMix(signatures[n][2]);
+    _metroVisualizationCtlr.updateChosenAnimation(signatures[n][2]);
 
     _setTempo(_lastTempoSliderVal);
   }
