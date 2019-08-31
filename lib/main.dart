@@ -1,8 +1,5 @@
 import 'package:audioplayers/audio_cache.dart';
-import 'package:flare_dart/math/mat2d.dart';
-import 'package:flare_flutter/flare.dart';
 import 'package:flare_flutter/flare_actor.dart';
-import 'package:flare_flutter/flare_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -65,45 +62,31 @@ class _MyHomePageState extends State<MyHomePage> {
   double _sliderOffset = 100;
 
   /// Most recent slider value.
-  double _lastTempoSliderVal = 0.5;
+  double _lastTempoSliderVal = 0.33; // this coordinates to 120 bpm on init.
 
   /// Min/Max Tempo
-  static double _minTempoBpm = 60;
-  static double _maxTempoBpm = 240;
+  static double _minTempoBpm = 60; // move to constant
+  static double _maxTempoBpm = 240; // move to constant
   double _maxTempoMS = bpmToMS(_maxTempoBpm);
   double _minTempoMS = bpmToMS(_minTempoBpm);
 
   /// Map of time signatures; _tsTop and _tsBottom are set based on the time signature slider
   /// as the value of the slider pulls values out of this map.
   final Map signatures = {
-    0.0: [3, 4, "Idle"],
-    0.1: [3, 4, "Triangle"],
-    0.2: [4, 4, "Square"],
-    0.3: [4, 4, "Square"],
-    0.4: [5, 4, "Square"],
-    0.5: [5, 4, "Square"],
-    0.6: [6, 4, "Square"],
-    0.7: [6, 4, "Square"],
-    0.8: [6, 8, "Square"],
-    0.9: [6, 8, "Square"],
-    1.0: [12, 8, "Square"],
+    0.0: [3, 4, "ani_tri"],
+    0.1: [3, 4, "ani_tri"],
+    0.2: [4, 4, "ani_square"],
+    0.3: [4, 4, "ani_square"],
+    0.4: [5, 4, "ani_square"],
+    0.5: [5, 4, "ani_square"],
+    0.6: [6, 4, "ani_square"],
+    0.7: [6, 4, "ani_square"],
+    0.8: [6, 8, "ani_square"],
+    0.9: [6, 8, "ani_square"],
+    1.0: [12, 8, "ani_square"],
   };
 
-  // ANIMATION OVERRIDES ----
-  //
-  double _rockAmount = 0.5; // ???
-
-// speed needs to be mapped between 0.5 (60pm) and 2.0 (240bpm)
-// basically, take tempo and map it's current value between 0.5 -> 2.0
-  double _speed = 1.0; // 1.0 = 120bpm
-  double _metroShapeTime = 0.0;
-
-  // ANIMATION LAYERS
-  ActorAnimation _aniSquare;
-  // ActorAnimation _aniSquare;
-  ActorAnimation _aniTri;
-
-  double _currentSig = 0.4;
+  String _currentAnimation = "ani_square";
 
   // Supers and Overrides
   MetroSimple _metroVisualizationCtlr; // better naming.
@@ -113,43 +96,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _metroVisualizationCtlr = MetroSimple(); // better naming
     super.initState();
   }
-
-  // @override
-  // bool advance(FlutterActorArtboard artboard, double elapsed) {
-  //   // map tempo range to animation speed.
-  //   _speed = scaleNum(_tempoInt, _minTempoBpm, _maxTempoBpm, 0.5, 2.0);
-
-  //   // var _currentAni;
-  //   // if (signatures[_currentSig][2] == "Triangle") {
-  //   //   _currentAni = _aniTri;
-  //   // } else {
-  //   //   _currentAni = _aniSquare;
-  //   // }
-
-  //   // wondering if this should be in a setState call.
-  //   if (_isRunning) {
-  //     _metroShapeTime += elapsed * _speed;
-  //     // _aniSquare.apply( _metroShapeTime % _aniSquare.duration, artboard, _rockAmount);
-  //     _aniTri.apply( _metroShapeTime % _aniSquare.duration, artboard, _rockAmount);
-  //     return true;
-  //   } else {
-  //     _metroShapeTime = 0;
-  //     // _aniSquare.apply( _metroShapeTime % _aniSquare.duration, artboard, _rockAmount);
-  //     _aniTri .apply( _metroShapeTime % _aniSquare.duration, artboard, _rockAmount);
-  //     // _currentAni.apply( _metroShapeTime % _currentAni.duration, artboard, _rockAmount);
-  //     // return false;
-  //     return false;
-  //   }
-  // }
-
-  // @override
-  // void initialize(FlutterActorArtboard artboard) {
-  //   _aniSquare = artboard.getAnimation("Square");
-  //   _aniTri = artboard.getAnimation("Triangle");
-  // }
-
-  // @override
-  // void setViewTransform(Mat2D viewTransform) {}
 
   // Methods --
 
@@ -182,14 +128,30 @@ class _MyHomePageState extends State<MyHomePage> {
         _isRunning = false;
         _beat = 1;
       });
-      // _metroVisualizationCtlr.stop();
+      _metroVisualizationCtlr.stopAnimations();
     } else {
       setState(() {
         _timer = Timer.periodic(_tempoDuration, _metroInc);
         _isRunning = true;
       });
-      // _metroVisualizationCtlr.playAnimation("Square");
+      _metroVisualizationCtlr.startAnimations();
     }
+  }
+
+  void _stopTimer() {
+    setState(() {
+      _timer.cancel();
+      _beat = 1;
+      _isRunning = false;
+    });
+  }
+
+  void _startTimer() {
+    setState(() {
+      _timer = Timer.periodic(_tempoDuration, _metroInc);
+      _isRunning = true;
+    });
+    _metroVisualizationCtlr.startAnimations();
   }
 
   /// Sets the tempo of the metronome via incoming tempo slider value.
@@ -218,6 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _scaledTempo /= 2;
     }
 
+    //dry this out with _tempoInt and _tempoDur being done twice.
     if (_isRunning) {
       setState(() {
         _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
@@ -225,30 +188,70 @@ class _MyHomePageState extends State<MyHomePage> {
         _timer = Timer.periodic(_tempoDuration, _metroInc);
         // reset beat count and animation.
         _beat = 1;
-        _metroShapeTime = 0;
+        _metroVisualizationCtlr.update(_tempoInt);
+        // _metroShapeTime = 0;
       });
     } else {
       setState(() {
         _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
         _tempoInt = msToBpm(uiTempo).toInt();
+        _metroVisualizationCtlr.update(_tempoInt);
       });
     }
   }
 
+  _handleDragEndSignature() {
+    _stopTimer();
+
+    var _scaledTempo =
+        _lastTempoSliderVal * (_minTempoMS - _maxTempoMS) + _maxTempoMS;
+    var uiTempo = _scaledTempo;
+
+    if (_tsBottom == 8) {
+      _scaledTempo /= 2;
+    }
+
+    //dry this out with _tempoInt and _tempoDur being done twice.
+    // tons of duplication here.
+    if (_isRunning) {
+      setState(() {
+        _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
+        _tempoInt = msToBpm(uiTempo).toInt();
+        _timer = Timer.periodic(_tempoDuration, _metroInc);
+        // reset beat count and animation.
+        _beat = 1;
+        _metroVisualizationCtlr.update(_tempoInt);
+        // _metroShapeTime = 0;
+      });
+    } else {
+      setState(() {
+        _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
+        _tempoInt = msToBpm(uiTempo).toInt();
+        _metroVisualizationCtlr.update(_tempoInt);
+      });
+    }
+
+    _startTimer();
+
+
+  }
+
   // Time Signature stuff ---
 
-  /// Turns a slider perentage into pulling vals out of sig map
+  /// Turns a slider percentage into pulling vals out of sig map
   /// and setting them into the _ts states.
+  /// todo - rename to "handleDragTimeSignature"
   void _setTimeSignature(double v) {
     var n = num.parse(v.toStringAsFixed(1));
+    _stopTimer();
     setState(() {
       _tsTop = signatures[n][0];
       _tsBottom = signatures[n][1];
-      _currentSig = n;
+      _currentAnimation = signatures[n][2];
     });
-    _metroVisualizationCtlr.updateChosenAnimation(signatures[n][2]);
-
-    _setTempo(_lastTempoSliderVal);
+    // _metroVisualizationCtlr.updateChosenAnimation(signatures[n][2]);
+    _metroVisualizationCtlr.update(_tempoInt);
+    // _setTempo(_lastTempoSliderVal);
   }
 
   // —— Builder Fns ———————————————————————————————————————————————————————————
@@ -322,10 +325,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     Container(
                       height: 128,
                       // <-- 4. Main menu row
-                      child: FlareActor('assets/ani_square_dup.flr',
+                      child: FlareActor('assets/$_currentAnimation.flr',
                           alignment: Alignment.center,
                           fit: BoxFit.contain,
-                          // animation: "Idle",
+                          // animation: "Main",
                           controller: _metroVisualizationCtlr),
                     )
                     // InteractableWidget,
@@ -372,13 +375,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: RotatedBox(
                     quarterTurns: 1,
                     child: TempoSlider(
-                      width: MediaQuery.of(context).size.height -
-                          (_sliderOffset * 2),
-                      color: Colors.white,
-                      onChanged: (val) => _setTimeSignature(val),
-                      onChangedStart: (val) => _setTimeSignature(val),
-                      onChangedFinish: (v) => null,
-                    )),
+                        width: MediaQuery.of(context).size.height -
+                            (_sliderOffset * 2),
+                        color: Colors.white,
+                        onChanged: (val) => _setTimeSignature(val),
+                        onChangedStart: (val) => _setTimeSignature(val),
+                        onChangedFinish: (v) => _handleDragEndSignature())),
               ),
             ],
           ),
