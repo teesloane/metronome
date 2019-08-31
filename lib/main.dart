@@ -123,27 +123,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _toggleTimer() {
     if (_isRunning) {
-      setState(() {
-        _timer.cancel();
-        _isRunning = false;
-        _beat = 1;
-      });
-      _metroVisualizationCtlr.stopAnimations();
+      this._stopTimer();
     } else {
-      setState(() {
-        _timer = Timer.periodic(_tempoDuration, _metroInc);
-        _isRunning = true;
-      });
-      _metroVisualizationCtlr.startAnimations();
+      this._startTimer();
     }
   }
 
+  /// Disables timer, sets _isRunning to false and resets current beat count.
   void _stopTimer() {
-    setState(() {
-      _timer.cancel();
-      _beat = 1;
-      _isRunning = false;
-    });
+    if (_timer != null) {
+      _metroVisualizationCtlr.stopAnimations();
+      setState(() {
+        _timer.cancel();
+        _beat = 1;
+        _isRunning = false;
+      });
+    }
   }
 
   void _startTimer() {
@@ -154,104 +149,100 @@ class _MyHomePageState extends State<MyHomePage> {
     _metroVisualizationCtlr.startAnimations();
   }
 
+  /// Runs LERP on the slider val to convert it into a tempo.
+  getTempoFromSlider({bool doubleTempo = false}) {
+    var scaledTempo =
+        _lastTempoSliderVal * (_minTempoMS - _maxTempoMS) + _maxTempoMS;
+    if (doubleTempo) {
+      if (_tsBottom == 8) {
+        scaledTempo /= 2;
+      }
+    }
+    return scaledTempo;
+  }
+
   /// Sets the tempo of the metronome via incoming tempo slider value.
-  /// TODO: Should be converted to "onSlider" -> change the ui tempo; that's all it does.
-  _setTempo(double sliderVal) {
-    // let's lerp the tempo, where max is 1000ms(60bpm) and min is 250ms(240)bpm
-    var _scaledTempo = sliderVal * (_minTempoMS - _maxTempoMS) + _maxTempoMS;
+  _handleDragChangeTempo(double sliderVal) {
+    _metroVisualizationCtlr.stopAnimations();
     _lastTempoSliderVal = sliderVal;
+
     if (_isRunning) {
       _timer.cancel();
     }
     setState(() {
-      _tempoInt = msToBpm(_scaledTempo).toInt();
+      _tempoInt = msToBpm(getTempoFromSlider()).toInt();
+    });
+  }
+
+  void _setTempoDurAndTempoUI() {
+    var newTempo =
+        Duration(milliseconds: getTempoFromSlider(doubleTempo: true).toInt());
+    var newTempoUI = msToBpm(getTempoFromSlider()).toInt();
+
+    setState(() {
+      _tempoDuration = newTempo;
+      _tempoInt = newTempoUI;
     });
   }
 
   /// - Sets the new tempo when user releases slider
   /// - If metrotimer is running, it resumes it.
   /// - Sets the final UI tempo to be viewed by user.
-  void _handleDragEnd() {
-    var _scaledTempo =
-        _lastTempoSliderVal * (_minTempoMS - _maxTempoMS) + _maxTempoMS;
-    var uiTempo = _scaledTempo;
-
-    if (_tsBottom == 8) {
-      _scaledTempo /= 2;
-    }
-
-    //dry this out with _tempoInt and _tempoDur being done twice.
+  void _handleDragEndTempo() {
     if (_isRunning) {
+      _setTempoDurAndTempoUI();
+      // this could prob be moved into the above function?
       setState(() {
-        _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
-        _tempoInt = msToBpm(uiTempo).toInt();
         _timer = Timer.periodic(_tempoDuration, _metroInc);
         // reset beat count and animation.
         _beat = 1;
         _metroVisualizationCtlr.update(_tempoInt);
-        // _metroShapeTime = 0;
+        _metroVisualizationCtlr.startAnimations();
       });
     } else {
-      setState(() {
-        _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
-        _tempoInt = msToBpm(uiTempo).toInt();
+      _setTempoDurAndTempoUI();
         _metroVisualizationCtlr.update(_tempoInt);
-      });
     }
   }
 
   _handleDragEndSignature() {
-    _stopTimer();
-
-    var _scaledTempo =
-        _lastTempoSliderVal * (_minTempoMS - _maxTempoMS) + _maxTempoMS;
-    var uiTempo = _scaledTempo;
-
-    if (_tsBottom == 8) {
-      _scaledTempo /= 2;
-    }
-
-    //dry this out with _tempoInt and _tempoDur being done twice.
-    // tons of duplication here.
     if (_isRunning) {
+      _timer.cancel();
+      _setTempoDurAndTempoUI();
+      // move the below into ^^
       setState(() {
-        _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
-        _tempoInt = msToBpm(uiTempo).toInt();
         _timer = Timer.periodic(_tempoDuration, _metroInc);
-        // reset beat count and animation.
         _beat = 1;
         _metroVisualizationCtlr.update(_tempoInt);
-        // _metroShapeTime = 0;
       });
     } else {
-      setState(() {
-        _tempoDuration = Duration(milliseconds: _scaledTempo.toInt());
-        _tempoInt = msToBpm(uiTempo).toInt();
+
+      _setTempoDurAndTempoUI();
         _metroVisualizationCtlr.update(_tempoInt);
-      });
     }
-
-    _startTimer();
-
-
   }
 
   // Time Signature stuff ---
 
   /// Turns a slider percentage into pulling vals out of sig map
   /// and setting them into the _ts states.
-  /// todo - rename to "handleDragTimeSignature"
-  void _setTimeSignature(double v) {
+  void _handleDragChangeSignature(double v) {
     var n = num.parse(v.toStringAsFixed(1));
-    _stopTimer();
-    setState(() {
-      _tsTop = signatures[n][0];
-      _tsBottom = signatures[n][1];
-      _currentAnimation = signatures[n][2];
-    });
-    // _metroVisualizationCtlr.updateChosenAnimation(signatures[n][2]);
-    _metroVisualizationCtlr.update(_tempoInt);
-    // _setTempo(_lastTempoSliderVal);
+    if (_isRunning) {
+      _timer.cancel();
+      setState(() {
+        _tsTop = signatures[n][0];
+        _tsBottom = signatures[n][1];
+        _currentAnimation = signatures[n][2];
+      });
+      _metroVisualizationCtlr.update(_tempoInt);
+    } else {
+      setState(() {
+        _tsTop = signatures[n][0];
+        _tsBottom = signatures[n][1];
+        _currentAnimation = signatures[n][2];
+      });
+    }
   }
 
   // —— Builder Fns ———————————————————————————————————————————————————————————
@@ -363,9 +354,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: MediaQuery.of(context).size.height -
                         (_sliderOffset * 2),
                     color: Colors.white,
-                    onChanged: (val) => _setTempo(val),
-                    onChangedStart: (val) => _setTempo(val),
-                    onChangedFinish: (v) => _handleDragEnd(),
+                    onChanged: (val) => _handleDragChangeTempo(val),
+                    onChangedStart: (val) => _handleDragChangeTempo(val),
+                    onChangedFinish: (v) => _handleDragEndTempo(),
                   ),
                 ),
               ),
@@ -378,8 +369,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         width: MediaQuery.of(context).size.height -
                             (_sliderOffset * 2),
                         color: Colors.white,
-                        onChanged: (val) => _setTimeSignature(val),
-                        onChangedStart: (val) => _setTimeSignature(val),
+                        onChanged: (val) => _handleDragChangeSignature(val),
+                        onChangedStart: (val) =>
+                            _handleDragChangeSignature(val),
                         onChangedFinish: (v) => _handleDragEndSignature())),
               ),
             ],
