@@ -58,6 +58,9 @@ class _MyHomePageState extends State<MyHomePage> {
   /// Whether or not the metronome is running
   bool _isRunning = false;
 
+  /// Don't start animations until the first beat is played.
+  bool _firstBeatPlayed = false;
+
   /// Used for deciding the UI offset of the sliders.
   double _sliderOffset = 100;
 
@@ -77,12 +80,12 @@ class _MyHomePageState extends State<MyHomePage> {
     0.1: [3, 4, "ani_tri"],
     0.2: [4, 4, "ani_square"],
     0.3: [4, 4, "ani_square"],
-    0.4: [5, 4, "ani_square"],
-    0.5: [5, 4, "ani_square"],
-    0.6: [6, 4, "ani_square"],
-    0.7: [6, 4, "ani_square"],
-    0.8: [6, 8, "ani_square"],
-    0.9: [6, 8, "ani_square"],
+    0.4: [5, 4, "ani_pent"],
+    0.5: [5, 4, "ani_pent"],
+    0.6: [6, 4, "ani_hex"],
+    0.7: [6, 4, "ani_hex"],
+    0.8: [6, 8, "ani_hex"],
+    0.9: [6, 8, "ani_hex"],
     1.0: [12, 8, "ani_square"],
   };
 
@@ -119,6 +122,11 @@ class _MyHomePageState extends State<MyHomePage> {
         _beat++;
       });
     }
+
+    if (_isRunning && !_firstBeatPlayed) {
+      _firstBeatPlayed = true;
+      _metroVisualizationCtlr.firstBeatPlayed = true;
+    }
   }
 
   void _toggleTimer() {
@@ -137,6 +145,8 @@ class _MyHomePageState extends State<MyHomePage> {
         _timer.cancel();
         _beat = 1;
         _isRunning = false;
+        _firstBeatPlayed = false;
+        _metroVisualizationCtlr.restartVis(_firstBeatPlayed, _tempoInt);
       });
     }
   }
@@ -196,12 +206,12 @@ class _MyHomePageState extends State<MyHomePage> {
         _timer = Timer.periodic(_tempoDuration, _metroInc);
         // reset beat count and animation.
         _beat = 1;
-        _metroVisualizationCtlr.update(_tempoInt);
-        _metroVisualizationCtlr.startAnimations();
+        _firstBeatPlayed = false;
+        _metroVisualizationCtlr.restartVis(_firstBeatPlayed, _tempoInt);
       });
     } else {
       _setTempoDurAndTempoUI();
-        _metroVisualizationCtlr.update(_tempoInt);
+      _metroVisualizationCtlr.updateTempo(_tempoInt);
     }
   }
 
@@ -213,12 +223,12 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _timer = Timer.periodic(_tempoDuration, _metroInc);
         _beat = 1;
-        _metroVisualizationCtlr.update(_tempoInt);
+        _firstBeatPlayed = false;
+        _metroVisualizationCtlr.restartVis(_firstBeatPlayed, _tempoInt);
       });
     } else {
-
       _setTempoDurAndTempoUI();
-        _metroVisualizationCtlr.update(_tempoInt);
+      _metroVisualizationCtlr.updateTempo(_tempoInt);
     }
   }
 
@@ -235,7 +245,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _tsBottom = signatures[n][1];
         _currentAnimation = signatures[n][2];
       });
-      _metroVisualizationCtlr.update(_tempoInt);
+      _metroVisualizationCtlr.updateTempo(_tempoInt);
     } else {
       setState(() {
         _tsTop = signatures[n][0];

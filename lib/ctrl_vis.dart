@@ -13,7 +13,9 @@ class MetroSimple extends FlareControls {
   bool _isPlaying = false;
   int tempo;
 
-  MetroSimple({ this.tempo = 120 });
+  bool firstBeatPlayed = false;
+
+  MetroSimple({this.tempo = 120});
 
   // @override
   advance(FlutterActorArtboard artboard, double elapsed) {
@@ -23,14 +25,14 @@ class MetroSimple extends FlareControls {
     // basically, take tempo and map it's current value between 0.5 -> 2.0
     _speed = scaleNum(tempo, 60, 240, 0.5, 2.0);
 
-    if (_isPlaying) {
+    if (_isPlaying && firstBeatPlayed) {
       _artboard = artboard;
       _elapsedTime += elapsed * _speed;
-      _ani.apply( _elapsedTime % _ani.duration, artboard, 1.0);
+      _ani.apply(_elapsedTime % _ani.duration, artboard, 1.0);
       return true;
     } else {
       _elapsedTime = 0;
-      _ani.apply( _elapsedTime % _ani.duration, artboard, 1.0);
+      _ani.apply(_elapsedTime % _ani.duration, artboard, 1.0);
       return true;
     }
   }
@@ -39,33 +41,31 @@ class MetroSimple extends FlareControls {
   void initialize(FlutterActorArtboard artboard) {
     super.initialize(artboard);
     _ani = artboard.getAnimation("Main");
-    // animations["Square"] = artboard.getAnimation("Square");
-    // animations["Triangle"] = artboard.getAnimation("Triangle");
-    // animations["Idle"] = artboard.getAnimation("Idle");
   }
 
   @override
   void setViewTransform(Mat2D viewTransform) {}
-
-  
-  updateChosenAnimation(val) {
-    _elapsedTime = 0;
-    // currentAni = val;
-  }
 
   startAnimations() {
     _isPlaying = true;
   }
 
   stopAnimations() {
-    _isPlaying = false; 
+    _isPlaying = false;
   }
 
-  updateTempo(double t) {
-    tempo = tempo; 
+  /// restarts a visualization with updated tempo,
+  restartVis(
+    bool _firstBeatPlayed,
+    int _tempoInt,
+  ) {
+    _elapsedTime = 0;
+    firstBeatPlayed = _firstBeatPlayed;
+    _isPlaying = true;
+    tempo = _tempoInt;
   }
-  
-  update(t) {
+
+  updateTempo(t) {
     tempo = t;
     _elapsedTime = 0; // start at beginning again.
   }
