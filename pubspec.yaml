@@ -54,6 +54,7 @@ flutter:
     - ani_tri.flr
     - ani_pent.flr
     - ani_hex.flr
+    - ani_dodec.flr
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

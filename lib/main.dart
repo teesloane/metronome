@@ -86,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
     0.7: [6, 4, "ani_hex"],
     0.8: [6, 8, "ani_hex"],
     0.9: [6, 8, "ani_hex"],
-    1.0: [12, 8, "ani_square"],
+    1.0: [12, 8, "ani_dodec"],
   };
 
   String _currentAnimation = "ani_square";
