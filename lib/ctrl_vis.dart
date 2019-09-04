@@ -17,7 +17,7 @@ class MetroSimple extends FlareControls {
 
   MetroSimple({this.tempo = 120});
 
-  // @override
+  @override
   advance(FlutterActorArtboard artboard, double elapsed) {
     super.advance(artboard, elapsed);
 
