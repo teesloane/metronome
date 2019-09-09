@@ -109,7 +109,7 @@ class _TempoSliderState extends State<TempoSlider>
         child: Container(
           width: widget.width,
           height: widget.height,
-          // color: Colors.red.withOpacity(0.1),
+          color: Colors.black54.withOpacity(0.1),
           child: CustomPaint(
               painter: WavePainter(
                   color: widget.color,
@@ -286,10 +286,10 @@ class WavePainter extends CustomPainter {
     canvas.drawPath(path, wavePainter);
   }
 
-  void _paintAnchors(Canvas canvas, Size size) {
-    canvas.drawCircle(Offset(0.0, size.height), 5.0, fillPainter);
-    canvas.drawCircle(Offset(size.width, size.height), 5.0, fillPainter);
-  }
+  // void _paintAnchors(Canvas canvas, Size size) {
+  //   canvas.drawCircle(Offset(0.0, size.height), 5.0, fillPainter);
+  //   canvas.drawCircle(Offset(size.width, size.height), 5.0, fillPainter);
+  // }
 
   /// - Calculates the definitions of the wave line
   /// - Everytime we paint, based on the input of a gesture,
