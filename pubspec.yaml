@@ -50,7 +50,6 @@ flutter:
     - assets/click_1.mp3
     - assets/click_2.mp3
     - ani_square.flr
-    - ani_square_dup.flr
     - ani_tri.flr
     - ani_pent.flr
     - ani_hex.flr
