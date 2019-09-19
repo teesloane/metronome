@@ -2,7 +2,6 @@ import 'package:flare_dart/math/mat2d.dart';
 import 'package:flare_flutter/flare.dart';
 import 'package:flare_flutter/flare_controls.dart';
 import 'package:metronome/util.dart';
-// import 'package:metronome/flare_controls_patch.dart';
 
 class MetroSimple extends FlareControls {
   FlutterActorArtboard _artboard;
