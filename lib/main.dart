@@ -1,5 +1,4 @@
 import 'package:audioplayers/audio_cache.dart';
-import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -323,19 +322,22 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Container(
-                      height: 128,
-                      // <-- 4. Main menu row
-                      child: FlareActor('assets/$_currentAnimation.flr',
-                          alignment: Alignment.center,
-                          fit: BoxFit.contain,
-                          // animation: "Main",
-                          controller: _metroVisualizationCtlr),
-                    )
+
+                    Image.asset("assets/cells/ph_$_beat.png")
+
+                    /* ANIMATIONS */
+                    // Container(
+                    //   height: 128,
+                    //   child: FlareActor('assets/$_currentAnimation.flr',
+                    //       alignment: Alignment.center,
+                    //       fit: BoxFit.contain,
+                    //       controller: _metroVisualizationCtlr),
+                    // )
                     // InteractableWidget,
                   ])),
         ));
   }
+
 
   String getTempo() {
     var sliceOfString = _tempoDuration.toString().substring(8, 11);

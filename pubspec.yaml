@@ -49,6 +49,10 @@ flutter:
     - assets/beep_2.mp3
     - assets/click_1.mp3
     - assets/click_2.mp3
+    - assets/cells/ph_1.png
+    - assets/cells/ph_2.png
+    - assets/cells/ph_3.png
+    - assets/cells/ph_4.png
     - ani_square.flr
     - ani_tri.flr
     - ani_pent.flr

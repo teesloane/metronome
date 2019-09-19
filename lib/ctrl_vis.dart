@@ -3,6 +3,7 @@ import 'package:flare_flutter/flare.dart';
 import 'package:flare_flutter/flare_controls.dart';
 import 'package:metronome/util.dart';
 
+/// A visualization controller for flare animations.
 class MetroSimple extends FlareControls {
   FlutterActorArtboard _artboard;
   double _elapsedTime = 0.0;
