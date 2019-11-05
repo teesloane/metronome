@@ -1,16 +1,12 @@
-# metronome
+# Metronome
 
-A new Flutter project.
+![](./docs/screenshot.png)
 
-## Getting Started
+Open source metronome application.
 
-This project is a starting point for a Flutter application.
+## Development
 
-A few resources to get you started if this is your first Flutter project:
+Development is currently in hiatus, but pull requests and contributions are
+welcome. Testing across devices is also welcome (testing has mostly been done on
+simulators and one or two android devices.)
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
