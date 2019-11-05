@@ -109,7 +109,7 @@ class _TempoSliderState extends State<TempoSlider>
         child: Container(
           width: widget.width,
           height: widget.height,
-          color: Colors.black54.withOpacity(0.1),
+          color: Colors.black54.withOpacity(0.0),
           child: CustomPaint(
               painter: WavePainter(
                   color: widget.color,

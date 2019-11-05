@@ -281,7 +281,7 @@ class _MyHomePageState extends State<MyHomePage> {
             color: Colors.orange.withOpacity(0.04),
             border: Border(
                 top:
-                    BorderSide(width: 2.0, color: Colors.deepOrange.shade800))),
+                    BorderSide(width: 3.0, color: Colors.white))),
         child: Row(children: <Widget>[
           Expanded(
             child: Container(
@@ -295,7 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Expanded(
               child: Container(
-            color: Colors.black26,
+            color: Colors.black12,
             alignment: Alignment.center,
             height: double.infinity,
             child: Container(child: _buildToggleButton()),
@@ -346,7 +346,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white.withOpacity(0.1),
+        backgroundColor: Colors.black26,
         body: AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle.light,
           child: Stack(
